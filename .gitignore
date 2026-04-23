@@ -12,3 +12,6 @@ dist/
 Thumbs.db
 /tmp/*.log
 .docker/
+.opencode/
+package.json
+package-lock.json

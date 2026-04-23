@@ -1,15 +1,9 @@
 import { Router } from 'express'
 import { query } from '../db.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = Router()
-
-const authenticate = async (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '')
-  if (!token) {
-    return res.status(401).json({ message: 'No autorizado' })
-  }
-  next()
-}
+router.use(authenticate)
 
 router.get('/', async (req, res) => {
   try {
@@ -21,9 +15,9 @@ router.get('/', async (req, res) => {
         p.precio_venta::numeric(10,2) as precio_venta
       FROM productos p
       LEFT JOIN categorias c ON p.categoria_id = c.id
-      WHERE p.activo = true
+      WHERE p.negocio_id = $1 AND p.activo = true
       ORDER BY p.nombre
-    `)
+    `, [req.negocioId])
     res.json(result.rows)
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener productos', error: error.message })
@@ -32,7 +26,10 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const result = await query('SELECT * FROM productos WHERE id = $1', [req.params.id])
+    const result = await query(
+      'SELECT * FROM productos WHERE id = $1 AND negocio_id = $2',
+      [req.params.id, req.negocioId]
+    )
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' })
     }
@@ -47,10 +44,10 @@ router.post('/', async (req, res) => {
     const { nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo } = req.body
     
     const result = await query(`
-      INSERT INTO productos (nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO productos (negocio_id, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock || 0, stock_minimo || 5])
+    `, [req.negocioId, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock || 0, stock_minimo || 5])
     
     res.json(result.rows[0])
   } catch (error) {
@@ -73,9 +70,9 @@ router.put('/:id', async (req, res) => {
           stock_minimo = COALESCE($7, stock_minimo),
           activo = COALESCE($8, activo),
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+      WHERE id = $9 AND negocio_id = $10
       RETURNING *
-    `, [nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo, req.params.id])
+    `, [nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo, req.params.id, req.negocioId])
     
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' })
@@ -88,7 +85,10 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await query('UPDATE productos SET activo = false WHERE id = $1', [req.params.id])
+    const result = await query(
+      'UPDATE productos SET activo = false WHERE id = $1 AND negocio_id = $2',
+      [req.params.id, req.negocioId]
+    )
     res.json({ message: 'Producto eliminado' })
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar producto', error: error.message })
@@ -98,30 +98,29 @@ router.delete('/:id', async (req, res) => {
 router.patch('/:id/stock', async (req, res) => {
   try {
     const { cantidad, tipo } = req.body
-    const productoId = req.params.id
     
     let result
     if (tipo === 'entrada') {
       result = await query(`
         UPDATE productos 
         SET stock = stock + $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2
+        WHERE id = $2 AND negocio_id = $3
         RETURNING *
-      `, [cantidad, productoId])
+      `, [cantidad, req.params.id, req.negocioId])
     } else if (tipo === 'salida') {
       result = await query(`
         UPDATE productos 
         SET stock = stock - $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2
+        WHERE id = $2 AND negocio_id = $3
         RETURNING *
-      `, [cantidad, productoId])
+      `, [cantidad, req.params.id, req.negocioId])
     } else if (tipo === 'ajuste') {
       result = await query(`
         UPDATE productos 
         SET stock = $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2
+        WHERE id = $2 AND negocio_id = $3
         RETURNING *
-      `, [cantidad, productoId])
+      `, [cantidad, req.params.id, req.negocioId])
     }
     
     res.json(result.rows[0])

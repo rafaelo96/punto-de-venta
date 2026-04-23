@@ -1,209 +1,255 @@
 <template>
-  <div class="h-full flex">
-    <div class="flex-1 flex flex-col">
-      <header class="bg-white border-b border-surface-200 px-6 py-4">
-        <div class="flex items-center gap-4">
-          <div class="flex-1 relative">
+  <div class="h-full flex flex-col lg:flex-row">
+    <!-- Panel Izquierdo: Búsqueda + Categorías + Productos -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Header: Buscador y Categorías -->
+      <header class="bg-white/80 backdrop-blur-sm border-b border-surface-200 p-3 lg:p-4">
+        <div class="flex flex-col gap-3">
+          <!-- Buscador -->
+          <div class="relative">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Buscar producto por nombre o código de barras..."
-              class="w-full max-w-md pl-11 pr-4 py-3 bg-surface-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="Buscar producto..."
+              class="w-full pl-10 pr-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2"
+              :style="{ '--tw-ring-color': colorPrincipal }"
               @input="handleSearch"
             />
-            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
           </div>
-          <div class="flex items-center gap-2">
+          
+          <!-- Categorías scrollable -->
+          <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               @click="categoriaSeleccionada = 'todos'"
-              class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              :class="categoriaSeleccionada === 'todos' ? 'bg-primary-500 text-white' : 'bg-surface-100 text-surface-600 hover:bg-surface-200'"
+              class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2"
+              :class="categoriaSeleccionada === 'todos' ? 'text-white' : 'bg-surface-100 text-surface-600 hover:bg-surface-200'"
+              :style="categoriaSeleccionada === 'todos' ? { backgroundColor: colorPrincipal } : {}"
             >
+              <LayoutGrid class="w-4 h-4" />
               Todos
             </button>
             <button
               v-for="cat in categorias"
               :key="cat.id"
               @click="categoriaSeleccionada = cat.id"
-              class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              :class="categoriaSeleccionada === cat.id ? 'bg-primary-500 text-white' : 'bg-surface-100 text-surface-600 hover:bg-surface-200'"
+              class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2"
+              :class="categoriaSeleccionada === cat.id ? 'text-white' : 'bg-surface-100 text-surface-600 hover:bg-surface-200'"
+              :style="categoriaSeleccionada === cat.id ? { backgroundColor: colorPrincipal } : {}"
             >
+              <Tag class="w-4 h-4" />
               {{ cat.nombre }}
             </button>
           </div>
         </div>
       </header>
 
-      <div class="flex-1 overflow-auto p-6">
+      <!-- Grid de Productos -->
+      <div class="flex-1 overflow-auto p-3 lg:p-4">
         <div v-if="loading" class="flex items-center justify-center h-full">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+          <Loader2 class="w-8 h-8 animate-spin" :style="{ color: colorPrincipal }" />
         </div>
         
         <div v-else-if="productosFiltrados.length === 0" class="flex flex-col items-center justify-center h-full text-surface-400">
-          <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4m0-10l-8-4"/>
-          </svg>
-          <p class="text-lg">No hay productos</p>
-          <p class="text-sm">Agrega productos desde la sección de Productos</p>
+          <Package class="w-12 h-12 mb-3" />
+          <p class="text-sm font-medium">Sin productos</p>
+          <p class="text-xs">Agrega productos en la sección de Productos</p>
         </div>
 
-        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 lg:gap-3">
           <div
             v-for="producto in productosFiltrados"
             :key="producto.id"
             @click="agregarAlCarrito(producto)"
-            class="bg-white p-4 rounded-2xl border border-surface-100 cursor-pointer hover:border-primary-300 hover:shadow-lg transition-all group"
+            class="bg-white p-2 lg:p-3 rounded-xl border border-surface-100 cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 group"
           >
-            <div class="aspect-square bg-surface-50 rounded-xl mb-3 flex items-center justify-center">
-              <span class="text-4xl text-surface-200">📦</span>
+            <div class="aspect-square bg-surface-50 rounded-lg mb-2 flex items-center justify-center group-hover:bg-primary-50 transition-colors">
+              <Package class="w-6 h-6 text-surface-300 group-hover:text-primary-400 transition-colors" />
             </div>
-            <h3 class="font-semibold text-surface-900 truncate mb-1">{{ producto.nombre }}</h3>
-            <p class="text-xs text-surface-500 truncate mb-2">{{ producto.codigo_barras }}</p>
+            <h3 class="font-medium text-surface-900 text-xs lg:text-sm truncate mb-1">{{ producto.nombre }}</h3>
             <div class="flex items-center justify-between">
-              <span class="text-lg font-bold text-primary-600">${{ Number(producto.precio_venta).toFixed(2) }}</span>
-              <span class="text-xs text-surface-400">Stock: {{ producto.stock }}</span>
+              <span class="text-sm font-bold" :style="{ color: colorPrincipal }">${{ Number(producto.precio_venta).toFixed(2) }}</span>
+              <span v-if="config.mostrar_stock" class="text-xs text-surface-400 flex items-center gap-1">
+                <Archive class="w-3 h-3" /> {{ producto.stock }}
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="w-96 bg-white border-l border-surface-200 flex flex-col">
-      <div class="p-5 border-b border-surface-100">
-        <h2 class="text-lg font-bold text-surface-900">Carrito de Venta</h2>
-        <p class="text-sm text-surface-500">{{ totalItems }} artículos</p>
+    <!-- Panel Derecho: Carrito -->
+    <div class="w-full lg:w-80 xl:w-96 bg-white/80 backdrop-blur-sm border-t lg:border-t-0 lg:border-l border-surface-200 flex flex-col" style="max-height: 50vh lg:max-height: none;">
+      <div class="p-3 lg:p-4 border-b border-surface-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" :style="{ backgroundColor: colorPrincipal + '20' }">
+              <ShoppingCart class="w-4 h-4" :style="{ color: colorPrincipal }" />
+            </div>
+            <div>
+              <h2 class="text-base lg:text-lg font-bold text-surface-900">Carrito</h2>
+              <p class="text-xs lg:text-sm text-surface-500">{{ totalItems }} artículo{{ totalItems !== 1 ? 's' : '' }}</p>
+            </div>
+          </div>
+          <button
+            v-if="!estaVacio"
+            @click="limpiarCarrito"
+            class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            title="Limpiar carrito"
+          >
+            <Trash2 class="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <div class="flex-1 overflow-auto p-5">
-        <div v-if="estaVacio" class="flex flex-col items-center justify-center h-full text-surface-400">
-          <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-          </svg>
-          <p>Carrito vacío</p>
-          <p class="text-sm">Agrega productos del catálogo</p>
+      <div class="flex-1 overflow-auto p-3 lg:p-4">
+        <div v-if="estaVacio" class="flex flex-col items-center justify-center h-full text-surface-400 py-8">
+          <ShoppingCart class="w-12 h-12 mb-2" />
+          <p class="text-sm">Carrito vacío</p>
+          <p class="text-xs">Agrega productos del catálogo</p>
         </div>
 
-        <div v-else class="space-y-3">
+        <div v-else class="space-y-2">
           <div
             v-for="item in items"
             :key="item.id"
-            class="flex gap-3 p-3 bg-surface-50 rounded-xl"
+            class="flex items-center gap-2 p-2 bg-surface-50 rounded-lg hover:bg-surface-100 transition-colors"
           >
             <div class="flex-1 min-w-0">
-              <h4 class="font-medium text-surface-900 truncate">{{ item.nombre }}</h4>
-              <p class="text-sm text-surface-500">${{ Number(item.precio).toFixed(2) }} c/u</p>
+              <h4 class="font-medium text-surface-900 text-sm truncate flex items-center gap-2">
+                <Package class="w-4 h-4 text-surface-400" />
+                {{ item.nombre }}
+              </h4>
+              <p class="text-xs text-surface-500">${{ Number(item.precio).toFixed(2) }} c/u</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1">
               <button
                 @click="actualizarCantidad(item.id, item.cantidad - 1)"
-                class="w-8 h-8 bg-white border border-surface-200 rounded-lg flex items-center justify-center hover:bg-surface-100"
+                class="w-7 h-7 border rounded-lg flex items-center justify-center transition-colors"
+                :style="{ borderColor: colorPrincipal, color: colorPrincipal }"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                </svg>
+                <Minus class="w-3 h-3" />
               </button>
-              <span class="w-10 text-center font-semibold">{{ item.cantidad }}</span>
+              <span class="w-6 text-center font-semibold text-sm">{{ item.cantidad }}</span>
               <button
                 @click="actualizarCantidad(item.id, item.cantidad + 1)"
-                class="w-8 h-8 bg-white border border-surface-200 rounded-lg flex items-center justify-center hover:bg-surface-100"
+                class="w-7 h-7 border rounded-lg flex items-center justify-center transition-colors"
+                :style="{ borderColor: colorPrincipal, color: colorPrincipal }"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
+                <Plus class="w-3 h-3" />
               </button>
             </div>
-            <div class="text-right">
-              <p class="font-semibold text-surface-900">${{ (Number(item.precio) * item.cantidad).toFixed(2) }}</p>
-              <button @click.stop="eliminarDelCarrito(item.id)" class="text-xs text-red-500 hover:text-red-600">Eliminar</button>
+            <div class="text-right min-w-[60px]">
+              <p class="font-semibold text-sm">${{ (Number(item.precio) * item.cantidad).toFixed(2) }}</p>
+              <button @click.stop="eliminarDelCarrito(item.id)" class="text-xs text-red-500 hover:text-red-600 transition-colors">
+                <X class="w-3 h-3" />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-if="!estaVacio" class="p-5 border-t border-surface-100 space-y-3">
-        <div class="flex justify-between text-surface-600">
-          <span>Subtotal</span>
+      <!-- Footer del Carrito -->
+      <div v-if="!estaVacio" class="p-3 lg:p-4 border-t border-surface-100 space-y-3">
+        <div class="flex justify-between text-sm">
+          <span class="text-surface-600 flex items-center gap-2">
+            <Receipt class="w-4 h-4" />
+            Subtotal
+          </span>
           <span>${{ subtotal.toFixed(2) }}</span>
         </div>
         
         <div class="flex items-center gap-2">
-          <span class="text-sm text-surface-600">Descuento:</span>
+          <Percent class="w-4 h-4 text-surface-400" />
           <input
             v-model.number="descuentoInput"
             type="number"
             min="0"
             max="100"
-            placeholder="0%"
-            class="w-20 px-3 py-2 border border-surface-200 rounded-lg text-center"
+            placeholder="0"
+            class="w-16 px-2 py-1.5 border border-surface-200 rounded-lg text-center text-sm"
             @change="aplicarDescuento(descuentoInput)"
           />
-          <span class="text-sm text-surface-500">%</span>
+          <span class="text-sm text-surface-500">% dto.</span>
         </div>
         
-        <div v-if="descuentoGlobal > 0" class="flex justify-between text-green-600">
-          <span>Descuento ({{ descuentoGlobal }}%)</span>
+        <div v-if="descuentoGlobal > 0" class="flex justify-between text-sm text-green-600">
+          <span class="flex items-center gap-2">
+            <Tag class="w-4 h-4" />
+            Descuento ({{ descuentoGlobal }}%)
+          </span>
           <span>-${{ montoDescuento.toFixed(2) }}</span>
         </div>
         
-        <div class="flex justify-between text-xl font-bold text-surface-900 pt-3 border-t border-surface-100">
-          <span>Total</span>
+        <div class="flex justify-between text-lg font-bold pt-2 border-t border-surface-100">
+          <span class="flex items-center gap-2">
+            <CreditCard class="w-5 h-5" />
+            Total
+          </span>
           <span>${{ total.toFixed(2) }}</span>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
+        <!-- Métodos de Pago -->
+        <div class="grid grid-cols-3 gap-1.5">
           <button
             v-for="metodo in metodosPago"
             :key="metodo.id"
             @click="metodoPago = metodo.id"
-            class="py-3 border-2 rounded-xl text-center font-medium transition-colors"
-            :class="metodoPago === metodo.id ? 'border-primary-500 bg-primary-50 text-primary-600' : 'border-surface-200 text-surface-600 hover:border-surface-300'"
+            class="py-2 border-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1"
+            :class="metodoPago === metodo.id ? 'text-white' : 'border-surface-200 text-surface-600'"
+            :style="metodoPago === metodo.id ? { backgroundColor: colorPrincipal, borderColor: colorPrincipal } : {}"
           >
+            <component :is="metodo.icon" class="w-3 h-3" />
             {{ metodo.nombre }}
           </button>
         </div>
 
         <button
           @click="finalizarVenta"
-          class="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white text-lg font-bold rounded-xl transition-colors"
+          class="w-full py-3 text-white font-bold rounded-lg transition-all hover:opacity-90 flex items-center justify-center gap-2"
+          :style="{ backgroundColor: colorPrincipal }"
         >
+          <DollarSign class="w-4 h-4" />
           Cobrar
-        </button>
-
-        <button
-          @click="limpiarCarrito"
-          class="w-full py-3 border border-surface-200 text-surface-600 rounded-xl hover:bg-surface-50"
-        >
-          Limpiar Carrito
         </button>
       </div>
     </div>
   </div>
 
-  <div v-if="mostrarTicket" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" @click.self="mostrarTicket = false">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-md text-center">
-      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
+  <!-- Modal Ticket -->
+  <div v-if="mostrarTicket" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" @click.self="mostrarTicket = false">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" :style="{ backgroundColor: colorPrincipal + '20' }">
+        <Check class="w-7 h-7" :style="{ color: colorPrincipal }" />
       </div>
-      <h3 class="text-2xl font-bold text-surface-900 mb-2">Venta Registrada</h3>
-      <p class="text-surface-500 mb-4">Folio: {{ ventaActual?.folio }}</p>
+      <h3 class="text-xl font-bold text-surface-900 mb-1">¡Venta Registrada!</h3>
+      <p class="text-sm text-surface-500 flex items-center justify-center gap-2">
+        <Receipt class="w-4 h-4" />
+        {{ ventaActual?.folio }}
+      </p>
       
-      <div class="text-left bg-surface-50 rounded-xl p-4 mb-6">
-        <p class="text-3xl font-bold text-center mb-4">${{ total.toFixed(2) }}</p>
-        <div class="flex justify-between">
-          <span>Recibido:</span>
+      <div class="bg-surface-50 rounded-xl p-4 mb-4 mt-4">
+        <p class="text-3xl font-bold text-center mb-3" :style="{ color: colorPrincipal }">${{ total.toFixed(2) }}</p>
+        <div class="flex justify-between text-sm">
+          <span class="flex items-center gap-1">
+            <Wallet class="w-4 h-4" />
+            Recibido:
+          </span>
           <span>${{ efectivoRecibido.toFixed(2) }}</span>
         </div>
-        <div class="flex justify-between font-bold">
-          <span>Cambio:</span>
+        <div class="flex justify-between font-bold mt-1">
+          <span class="flex items-center gap-1">
+            <Coins class="w-4 h-4" />
+            Cambio:
+          </span>
           <span>${{ cambio.toFixed(2) }}</span>
         </div>
       </div>
 
-      <button @click="mostrarTicket = false" class="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-xl">
+      <button @click="mostrarTicket = false" class="w-full py-3 text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center gap-2"
+        :style="{ backgroundColor: colorPrincipal }"
+      >
+        <RotateCcw class="w-4 h-4" />
         Nueva Venta
       </button>
     </div>
@@ -214,6 +260,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useProductosStore } from '@/stores/productos'
 import { useVentasStore } from '@/stores/ventas'
+import { config, fetchConfig } from '@/stores/config'
+import { 
+  Search, LayoutGrid, Tag, Package, Archive, ShoppingCart, Trash2, 
+  Minus, Plus, X, Receipt, Percent, CreditCard, DollarSign, Check,
+  Wallet, Coins, RotateCcw, Banknote, CreditCard as CardIcon, Send
+} from 'lucide-vue-next'
 
 const productosStore = useProductosStore()
 const ventasStore = useVentasStore()
@@ -226,10 +278,12 @@ const mostrarTicket = ref(false)
 const efectivoRecibido = ref(0)
 const cambio = ref(0)
 
+const colorPrincipal = computed(() => config.color_principal || '#3b82f6')
+
 const metodosPago = [
-  { id: 'efectivo', nombre: 'Efectivo' },
-  { id: 'tarjeta', nombre: 'Tarjeta' },
-  { id: 'transferencia', nombre: 'Transferencia' }
+  { id: 'efectivo', nombre: 'Efectivo', icon: Banknote },
+  { id: 'tarjeta', nombre: 'Tarjeta', icon: CardIcon },
+  { id: 'transferencia', nombre: 'Transferencia', icon: Send }
 ]
 
 const productosFiltrados = computed(() => {
@@ -267,6 +321,11 @@ const handleSearch = () => {
 
 const agregarAlCarrito = (producto) => {
   ventasStore.agregarProducto(producto)
+  if (config.sonido) {
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodHLn3E+OyNtWnRvcbqmeUgxLih1oNzFqnRKNShh4NfMmWonYyYvRdyzam9jKC4uaujLp3xQPkE3i7+1bWIiIiIzjre1a2ElJSUntLJxYSsrLCSxr3FsIiMjIi2xr3FtISUlJbKxbWIoKSopsK5wYSYmJiuvr3BiJiYlLbCvbyUnJiSusG9fISEhIK2vr28iIiAuu7txISEhIK2vr28iIiAusK9vISEhIK2wr28iISAtrq9vISEgLbCvb28iISAtra9vISEgLq6vbyIiIC2tr28iISMqrq9vICIjKK6ub2IiIiqtrW8iIiIqraxuYiIiKqutbGIiIiqqrG1iISMqq6xsYSISKqqsbWIiIiqqq2sbWIiIiqrrG1iIiKqq6xtYiIiqausbWIB')
+    audio.volume = 0.3
+    audio.play().catch(() => {})
+  }
 }
 
 const actualizarCantidad = (productoId, cantidad) => {
@@ -294,7 +353,9 @@ const finalizarVenta = async () => {
   })
   
   if (result.success) {
-    mostrarTicket.value = true
+    if (config.emitir_ticket) {
+      mostrarTicket.value = true
+    }
     productosStore.fetchProductos()
   }
 }
@@ -305,7 +366,18 @@ const limpiarCarrito = () => {
 }
 
 onMounted(() => {
+  fetchConfig()
   productosStore.fetchProductos()
   productosStore.fetchCategorias()
 })
 </script>
+
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

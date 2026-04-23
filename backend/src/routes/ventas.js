@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import { query, pool } from '../db.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = Router()
+router.use(authenticate)
 
 function generarFolio() {
   const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '')
@@ -15,9 +17,10 @@ router.get('/historial', async (req, res) => {
       SELECT v.*, u.nombre as usuario_nombre
       FROM ventas v
       LEFT JOIN usuarios u ON v.usuario_id = u.id
+      WHERE v.negocio_id = $1
       ORDER BY v.created_at DESC
       LIMIT 50
-    `)
+    `, [req.negocioId])
     res.json(result.rows)
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener historial', error: error.message })
@@ -34,10 +37,10 @@ router.post('/', async (req, res) => {
     const folio = generarFolio()
     
     const ventaResult = await client.query(`
-      INSERT INTO ventas (folio, total, descuento_porcentaje, metodo_pago, efectivo, cambio)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO ventas (negocio_id, usuario_id, folio, total, descuento_porcentaje, metodo_pago, efectivo, cambio)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [folio, total, descuento_porcentaje || 0, metodo_pago, efectivo || 0, cambio || 0])
+    `, [req.negocioId, req.userId, folio, total, descuento_porcentaje || 0, metodo_pago, efectivo || 0, cambio || 0])
     
     const ventaId = ventaResult.rows[0].id
     
@@ -50,8 +53,8 @@ router.post('/', async (req, res) => {
       await client.query(`
         UPDATE productos 
         SET stock = stock - $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2
-      `, [item.cantidad, item.producto_id])
+        WHERE id = $2 AND negocio_id = $3
+      `, [item.cantidad, item.producto_id, req.negocioId])
     }
     
     await client.query('COMMIT')
@@ -70,23 +73,23 @@ router.get('/dashboard', async (req, res) => {
     const hoy = new Date().toISOString().slice(0, 10)
     
     const ventasHoy = await query(`
-      SELECT COALESCE(SUM(total), COUNT(*), SUM(efectivo) as efectivo
+      SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as count, COALESCE(SUM(efectivo), 0) as efectivo
       FROM ventas 
-      WHERE DATE(created_at) = $1
-    `, [hoy])
+      WHERE negocio_id = $1 AND DATE(created_at) = $2
+    `, [req.negocioId, hoy])
     
     const productosVendidos = await query(`
-      SELECT SUM(vi.cantidad) as total
+      SELECT COALESCE(SUM(vi.cantidad), 0) as total
       FROM ventas_items vi
       JOIN ventas v ON vi.venta_id = v.id
-      WHERE DATE(v.created_at) = $1
-    `, [hoy])
+      WHERE v.negocio_id = $1 AND DATE(v.created_at) = $2
+    `, [req.negocioId, hoy])
     
     res.json({
-      ventas_hoy: parseFloat(ventasHoy.rows[0]?.coalesce || 0),
-      tickets_hoy: parseInt(ventasHoy.rows[0]?.count || 0),
-      productos_vendidos: parseInt(productosVendidos.rows[0]?.total || 0),
-      efectivo: parseFloat(ventasHoy.rows[0]?.efectivo || 0)
+      ventas_hoy: parseFloat(ventasHoy.rows[0].total),
+      tickets_hoy: parseInt(ventasHoy.rows[0].count),
+      productos_vendidos: parseInt(productosVendidos.rows[0].total),
+      efectivo: parseFloat(ventasHoy.rows[0].efectivo)
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener dashboard', error: error.message })

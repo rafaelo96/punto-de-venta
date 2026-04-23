@@ -1,8 +1,17 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { applyThemeColor } from './config'
 
 const api = axios.create({
   baseURL: '/api'
+})
+
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('pos_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 export const useAuthStore = defineStore('auth', {
@@ -14,7 +23,8 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: (state) => !!state.token,
-    currentUser: (state) => state.user
+    currentUser: (state) => state.user,
+    negocio: (state) => state.user?.negocio || null
   },
 
   actions: {
@@ -25,7 +35,11 @@ export const useAuthStore = defineStore('auth', {
         this.token = data.token
         this.user = data.user
         localStorage.setItem('pos_token', data.token)
-        api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
+        
+        if (data.user.negocio?.color_principal) {
+          applyThemeColor(data.user.negocio.color_principal)
+        }
+        
         return { success: true }
       } catch (error) {
         return { 
@@ -44,7 +58,11 @@ export const useAuthStore = defineStore('auth', {
         this.token = data.token
         this.user = data.user
         localStorage.setItem('pos_token', data.token)
-        api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
+        
+        if (data.user.negocio?.color_principal) {
+          applyThemeColor(data.user.negocio.color_principal)
+        }
+        
         return { success: true }
       } catch (error) {
         return { 
@@ -59,10 +77,13 @@ export const useAuthStore = defineStore('auth', {
     async checkAuth() {
       if (!this.token) return
       
-      api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
       try {
         const { data } = await api.get('/auth/me')
         this.user = data.user
+        
+        if (data.user?.negocio?.color_principal) {
+          applyThemeColor(data.user.negocio.color_principal)
+        }
       } catch (error) {
         this.logout()
       }
@@ -72,7 +93,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.user = null
       localStorage.removeItem('pos_token')
-      delete api.defaults.headers.common['Authorization']
+      localStorage.removeItem('color_principal')
     }
   }
 })

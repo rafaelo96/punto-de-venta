@@ -6,14 +6,20 @@ import authRoutes from './routes/auth.js'
 import productosRoutes from './routes/productos.js'
 import categoriasRoutes from './routes/categorias.js'
 import ventasRoutes from './routes/ventas.js'
+import configuracionesRoutes from './routes/configuraciones.js'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 dotenv.config()
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(cors())
 app.use(express.json())
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 app.use((req, res, next) => {
   req.pool = pool
@@ -37,6 +43,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/productos', productosRoutes)
 app.use('/api/categorias', categoriasRoutes)
 app.use('/api/ventas', ventasRoutes)
+app.use('/api/configuraciones', configuracionesRoutes)
 
 app.use((err, req, res, next) => {
   console.error(err.stack)
