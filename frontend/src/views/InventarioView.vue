@@ -1,6 +1,6 @@
 <template>
-  <div class="h-full flex flex-col">
-    <header class="bg-white/80 backdrop-blur-sm border-b border-surface-200 px-6 py-4">
+  <div class="h-full flex flex-col overflow-hidden">
+    <header class="bg-white/80 backdrop-blur-sm border-b border-surface-200 px-6 py-4 flex-shrink-0">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="{ backgroundColor: colorPrincipal + '20' }">
@@ -18,7 +18,7 @@
 
     <div class="flex-1 overflow-auto p-6">
       <!-- Stats Grid -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-surface-100 hover:shadow-md transition-shadow">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">

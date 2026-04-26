@@ -13,7 +13,9 @@ router.use(authenticate)
 
 const getStoragePath = (negocioId) => {
   const storageDir = path.join(__dirname, `../../uploads/${negocioId}`)
+  console.log('Storage path:', storageDir)
   if (!fs.existsSync(storageDir)) {
+    console.log('Creating directory:', storageDir)
     fs.mkdirSync(storageDir, { recursive: true })
   }
   return storageDir
@@ -91,17 +93,25 @@ router.put('/', async (req, res) => {
 
 router.post('/logo', upload.single('logo'), async (req, res) => {
   try {
+    console.log('=== Upload logo endpoint called ===')
+    console.log('Body:', req.body)
+    console.log('File:', req.file)
+    console.log('NegocioId from middleware:', req.negocioId)
+    
     if (!req.file) {
-      console.log('No file received:', req.body)
+      console.log('No file received')
       return res.status(400).json({ message: 'No se recibió archivo' })
     }
-    console.log('File received:', req.file)
-    console.log('NegocioId:', req.negocioId)
+    
     const logoPath = `/uploads/${req.negocioId}/logo${path.extname(req.file.originalname)}`
+    console.log('Logo path to save:', logoPath)
+    
     await query(
       'UPDATE negocios SET logo = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
       [logoPath, req.negocioId]
     )
+    
+    console.log('Logo saved to DB')
     res.json({ message: 'Logo actualizado', path: logoPath })
   } catch (error) {
     console.error('Error uploading logo:', error)

@@ -10,7 +10,7 @@
     </header>
 
     <div class="flex-1 overflow-auto p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <div class="bg-white p-5 rounded-2xl border border-surface-100 hover:shadow-md transition-shadow">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">

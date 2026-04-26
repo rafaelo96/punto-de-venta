@@ -32,7 +32,7 @@
                   class="w-24 h-24 rounded-2xl border-2 border-dashed border-surface-300 flex items-center justify-center overflow-hidden transition-colors bg-surface-50"
                   :style="{ borderColor: colorPrincipal }"
                 >
-                  <img v-if="negocio.logo" :src="negocio.logo.startsWith('http') ? negocio.logo : API_URL + negocio.logo" class="w-full h-full object-contain" />
+                  <img v-if="negocio.logo" :src="negocio.logo.startsWith('http') ? negocio.logo : API_URL + negocio.logo + '?t=' + Date.now()" class="w-full h-full object-contain" />
                   <Upload v-else class="w-8 h-8 text-surface-400" />
                 </div>
                 <input type="file" accept="image/*" @change="subirLogo" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
@@ -222,7 +222,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
-import { applyThemeColor, config } from '@/stores/config'
+import { applyThemeColor, config, saveConfig } from '@/stores/config'
 import { 
   Settings, Store, Upload, Plus, Check, Save, Building2,
   Palette, MapPin, Phone, Tag, Folder, Trash2, AlertCircle,
@@ -323,6 +323,7 @@ const subirLogo = async (event) => {
     })
     console.log('Logo subido:', data)
     negocio.logo = data.path
+    config.logo_negocio = data.path
     mostrarGuardado()
   } catch (e) {
     console.error('Error al subir logo:', e)
