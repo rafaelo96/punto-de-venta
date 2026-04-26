@@ -30,13 +30,13 @@ router.post('/:id/imagen', uploadProducto.single('imagen'), async (req, res) => 
     if (!req.file) {
       return res.status(400).json({ message: 'No se recibió imagen' })
     }
-    const imagenPath = `/uploads/${req.negocioId}/productos/${req.file.filename}`
+    const imagenPath = `/uploads/1/productos/${req.file.filename}`
     const result = await query(`
       UPDATE productos 
       SET imagen = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2 AND negocio_id = $3
+      WHERE id = $2
       RETURNING *
-    `, [imagenPath, req.params.id, req.negocioId])
+    `, [imagenPath, req.params.id])
     
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' })
@@ -57,20 +57,40 @@ router.get('/', async (req, res) => {
         p.precio_venta::numeric(10,2) as precio_venta
       FROM productos p
       LEFT JOIN categorias c ON p.categoria_id = c.id
-      WHERE p.negocio_id = $1 AND p.activo = true
+      WHERE p.activo = true
       ORDER BY p.nombre
-    `, [req.negocioId])
+    `)
     res.json(result.rows)
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener productos', error: error.message })
   }
 })
 
+router.put('/:id/imagen', async (req, res) => {
+  try {
+    const { imagen } = req.body
+    
+    const result = await query(`
+      UPDATE productos 
+      SET imagen = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING *
+    `, [imagen, req.params.id])
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' })
+    }
+    res.json(result.rows[0])
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar imagen', error: error.message })
+  }
+})
+
 router.get('/:id', async (req, res) => {
   try {
     const result = await query(
-      'SELECT * FROM productos WHERE id = $1 AND negocio_id = $2',
-      [req.params.id, req.negocioId]
+      'SELECT * FROM productos WHERE id = $1',
+      [req.params.id]
     )
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' })
@@ -87,9 +107,9 @@ router.post('/', async (req, res) => {
     
     const result = await query(`
       INSERT INTO productos (negocio_id, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES (1, $1, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [req.negocioId, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock || 0, stock_minimo || 5])
+    `, [nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock || 0, stock_minimo || 5])
     
     res.json(result.rows[0])
   } catch (error) {
@@ -99,7 +119,12 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo } = req.body
+    const { nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo, imagen } = req.body
+    
+    const existe = await query('SELECT id FROM productos WHERE id = $1', [req.params.id])
+    if (existe.rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' })
+    }
     
     const result = await query(`
       UPDATE productos 
@@ -111,14 +136,12 @@ router.put('/:id', async (req, res) => {
           stock = COALESCE($6, stock),
           stock_minimo = COALESCE($7, stock_minimo),
           activo = COALESCE($8, activo),
+          imagen = $9,
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9 AND negocio_id = $10
+      WHERE id = $10
       RETURNING *
-    `, [nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo, req.params.id, req.negocioId])
+    `, [nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo, imagen, req.params.id])
     
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado' })
-    }
     res.json(result.rows[0])
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar producto', error: error.message })
@@ -128,8 +151,8 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const result = await query(
-      'UPDATE productos SET activo = false WHERE id = $1 AND negocio_id = $2',
-      [req.params.id, req.negocioId]
+      'UPDATE productos SET activo = false WHERE id = $1',
+      [req.params.id]
     )
     res.json({ message: 'Producto eliminado' })
   } catch (error) {
@@ -146,26 +169,30 @@ router.patch('/:id/stock', async (req, res) => {
       result = await query(`
         UPDATE productos 
         SET stock = stock + $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2 AND negocio_id = $3
+        WHERE id = $2
         RETURNING *
-      `, [cantidad, req.params.id, req.negocioId])
+      `, [cantidad, req.params.id])
     } else if (tipo === 'salida') {
       result = await query(`
         UPDATE productos 
         SET stock = stock - $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2 AND negocio_id = $3
+        WHERE id = $2
         RETURNING *
-      `, [cantidad, req.params.id, req.negocioId])
+      `, [cantidad, req.params.id])
     } else if (tipo === 'ajuste') {
       result = await query(`
         UPDATE productos 
         SET stock = $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2 AND negocio_id = $3
+        WHERE id = $2
         RETURNING *
-      `, [cantidad, req.params.id, req.negocioId])
+      `, [cantidad, req.params.id])
     }
     
-    res.json(result.rows[0])
+    const producto = result.rows[0]
+    const cat = await query('SELECT nombre FROM categorias WHERE id = $1', [producto.categoria_id])
+    producto.categoria_nombre = cat.rows[0]?.nombre || null
+    
+    res.json(producto)
   } catch (error) {
     res.status(500).json({ message: 'Error al ajustar stock', error: error.message })
   }

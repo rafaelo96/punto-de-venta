@@ -278,7 +278,79 @@
     </div>
   </div>
 
-  <!-- Modal Ticket -->
+  <!-- Modal Pago -->
+    <div v-if="showPagoModal" class="fixed inset-0 bg-surface-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="showPagoModal = false">
+      <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl animate-scale-in overflow-hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-surface-900 flex items-center gap-2">
+            <CreditCard class="w-6 h-6" :style="{ color: colorPrincipal }" />
+            Cobro de Venta
+          </h3>
+          <button @click="showPagoModal = false" class="p-2 text-surface-400 hover:bg-surface-100 rounded-xl transition-colors">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-surface-50 rounded-2xl p-4 border border-surface-100 text-center">
+            <p class="text-sm font-medium text-surface-500 mb-1">Total a Cobrar</p>
+            <p class="text-4xl font-black" :style="{ color: colorPrincipal }">${{ total.toFixed(2) }}</p>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-surface-700 mb-2">Método de Pago</label>
+<div class="grid grid-cols-3 gap-2">
+    <button 
+      v-for="metodo in metodosPago" 
+      :key="metodo.id"
+      @click="metodoPago = metodo.id; calcularCambio()"
+      class="py-3 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 border-2"
+      :class="metodoPago === metodo.id ? 'text-white shadow-md scale-[1.02]' : 'bg-white border-surface-200 text-surface-500 hover:border-surface-300 hover:bg-surface-50'"
+      :style="metodoPago === metodo.id ? { backgroundColor: colorPrincipal, borderColor: colorPrincipal, boxShadow: `0 4px 14px 0 ${colorPrincipal}40` } : {}"
+    >
+      <component :is="metodo.icon" class="w-4 h-4" />
+      {{ metodo.nombre }}
+    </button>
+  </div>
+            </div>
+
+            <div v-if="metodoPago === 'efectivo'" class="space-y-4 animate-fade-in">
+              <div>
+                <label class="block text-sm font-semibold text-surface-700 mb-2">Efectivo Recibido</label>
+                <div class="relative">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 font-bold">$</span>
+                  <input 
+                    v-model.number="efectivoRecibido" 
+                    type="number" 
+                    step="0.01"
+                    @input="calcularCambio"
+                    class="w-full pl-8 pr-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-lg font-bold focus:ring-2 focus:outline-none transition-all"
+                    :style="{ '--tw-ring-color': colorPrincipal }"
+                  />
+                </div>
+              </div>
+              <div class="bg-primary-50 rounded-2xl p-4 border border-primary-100 flex justify-between items-center">
+                <span class="text-sm font-semibold text-primary-700">Cambio a entregar:</span>
+                <span class="text-xl font-black text-primary-800">${{ cambio.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            @click="confirmarPago" 
+            class="w-full py-4 text-white font-bold rounded-2xl transition-all hover:opacity-90 flex items-center justify-center gap-2 text-lg shadow-lg hover-lift"
+            :style="{ backgroundColor: colorPrincipal }"
+          >
+            <Check class="w-6 h-6" />
+            Confirmar Venta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Ticket -->
+
   <div v-if="mostrarTicket" class="fixed inset-0 bg-surface-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="mostrarTicket = false">
     <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl animate-scale-in relative overflow-hidden">
       <div class="absolute top-0 left-0 w-full h-2" :style="{ backgroundColor: colorPrincipal }"></div>
@@ -294,7 +366,7 @@
       
       <div class="bg-surface-50 rounded-2xl p-5 mb-6 border border-surface-100">
         <p class="text-sm text-surface-500 font-medium mb-1">Monto Cobrado</p>
-        <p class="text-4xl font-black text-center mb-4" :style="{ color: colorPrincipal }">${{ total.toFixed(2) }}</p>
+        <p class="text-4xl font-black text-center mb-4" :style="{ color: colorPrincipal }">${{ ticketData.total.toFixed(2) }}</p>
         
         <div class="space-y-2 pt-4 border-t border-surface-200">
           <div class="flex justify-between text-sm font-medium text-surface-600">
@@ -302,14 +374,14 @@
               <Wallet class="w-4 h-4 text-surface-400" />
               Recibido:
             </span>
-            <span class="text-surface-900">${{ efectivoRecibido.toFixed(2) }}</span>
+            <span class="text-surface-900">${{ ticketData.recibido.toFixed(2) }}</span>
           </div>
           <div class="flex justify-between text-sm font-bold">
             <span class="flex items-center gap-1.5">
               <Coins class="w-4 h-4 text-surface-400" />
               Su Cambio:
             </span>
-            <span class="text-surface-900">${{ cambio.toFixed(2) }}</span>
+            <span class="text-surface-900">${{ ticketData.cambio.toFixed(2) }}</span>
           </div>
         </div>
       </div>
@@ -344,8 +416,10 @@ const vista = ref('cards')
 const descuentoInput = ref(0)
 const metodoPago = ref('efectivo')
 const mostrarTicket = ref(false)
+const showPagoModal = ref(false)
 const efectivoRecibido = ref(0)
 const cambio = ref(0)
+const ticketData = ref({ total: 0, recibido: 0, cambio: 0, folio: '' })
 
 const colorPrincipal = computed(() => config.color_principal || '#3b82f6')
 
@@ -383,7 +457,11 @@ const productosFiltrados = computed(() => {
 })
 
 const loading = computed(() => productosStore.loading)
-const categorias = computed(() => productosStore.categorias)
+const categorias = computed(() => {
+  const cats = productosStore.categorias
+  const prods = productosStore.productos
+  return cats.filter(c => prods.some(p => p.categoria_id === c.id))
+})
 const items = computed(() => ventasStore.items)
 const estaVacio = computed(() => ventasStore.estaVacio)
 const totalItems = computed(() => ventasStore.totalItems)
@@ -419,28 +497,57 @@ const aplicarDescuento = (porcentaje) => {
 }
 
 const finalizarVenta = async () => {
-  if (metodoPago.value === 'efectivo') {
-    efectivoRecibido.value = total.value
-    cambio.value = 0
+  if (ventasStore.estaVacio) {
+    alert('El carrito está vacío')
+    return
   }
+  
+  efectivoRecibido.value = total.value
+  cambio.value = 0
+  showPagoModal.value = true
+}
+
+const confirmarPago = async () => {
+  if (metodoPago.value === 'efectivo' && efectivoRecibido.value < total.value) {
+    alert('El monto recibido es menor al total')
+    return
+  }
+  
+  const montoTotal = total.value
+  const montoRecibido = efectivoRecibido.value
+  const montoCambio = cambio.value
   
   const result = await ventasStore.registrarVenta({
     metodo: metodoPago.value,
-    efectivo: efectivoRecibido.value,
-    cambio: cambio.value
+    efectivo: montoRecibido,
+    cambio: montoCambio
   })
   
   if (result.success) {
-    if (config.emitir_ticket) {
-      mostrarTicket.value = true
+    showPagoModal.value = false
+    
+    ticketData.value = { 
+      total: montoTotal, 
+      recibido: montoRecibido, 
+      cambio: montoCambio, 
+      folio: result.venta.folio 
     }
+    
+    mostrarTicket.value = true
+    ventaActual.value = result.venta
+    
     productosStore.fetchProductos()
+  } else {
+    alert('Error al registrar venta: ' + result.error)
   }
 }
 
-const limpiarCarrito = () => {
-  ventasStore.limpiarCarrito()
-  descuentoInput.value = 0
+const calcularCambio = () => {
+  if (metodoPago.value === 'efectivo') {
+    cambio.value = Math.max(0, efectivoRecibido.value - total.value)
+  } else {
+    cambio.value = 0
+  }
 }
 
 onMounted(async () => {

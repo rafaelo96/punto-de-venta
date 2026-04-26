@@ -1,10 +1,6 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import api from '@/api'
 import { applyThemeColor } from './config'
-
-const api = axios.create({
-  baseURL: '/api'
-})
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('pos_token')

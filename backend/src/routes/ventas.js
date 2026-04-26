@@ -68,31 +68,95 @@ router.post('/', async (req, res) => {
   }
 })
 
+router.get('/stats/daily', async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT 
+        DATE(created_at) as fecha, 
+        SUM(total) as total,
+        COUNT(*) as tickets
+      FROM ventas 
+      WHERE negocio_id = $1 
+      GROUP BY fecha 
+      ORDER BY fecha ASC 
+      LIMIT 30
+    `, [req.negocioId])
+    res.json(result.rows)
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener stats diarios', error: error.message })
+  }
+})
+
 router.get('/dashboard', async (req, res) => {
   try {
     const hoy = new Date().toISOString().slice(0, 10)
     
-    const ventasHoy = await query(`
-      SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as count, COALESCE(SUM(efectivo), 0) as efectivo
-      FROM ventas 
-      WHERE negocio_id = $1 AND DATE(created_at) = $2
+    // 1. Métricas Generales
+    const general = await query(`
+      SELECT 
+        COALESCE(SUM(v.total), 0) as total_ventas, 
+        COUNT(v.id) as num_tickets, 
+        COALESCE(SUM(v.efectivo), 0) as total_efectivo,
+        COALESCE((SELECT SUM(cantidad) FROM ventas_items vi JOIN ventas v2 ON vi.venta_id = v2.id WHERE v2.negocio_id = $1 AND DATE(v2.created_at) = $2), 0) as total_productos
+      FROM ventas v
+      WHERE v.negocio_id = $1 AND DATE(v.created_at) = $2
     `, [req.negocioId, hoy])
-    
-    const productosVendidos = await query(`
-      SELECT COALESCE(SUM(vi.cantidad), 0) as total
+
+    // 2. Utilidad Real (Ganancia Neta)
+    const utilidad = await query(`
+      SELECT COALESCE(SUM((vi.precio_unitario - p.precio_compra) * vi.cantidad), 0) as ganancia
       FROM ventas_items vi
+      JOIN productos p ON vi.producto_id = p.id
       JOIN ventas v ON vi.venta_id = v.id
       WHERE v.negocio_id = $1 AND DATE(v.created_at) = $2
     `, [req.negocioId, hoy])
-    
+
+    // 3. Top 5 Productos más vendidos
+    const topProductos = await query(`
+      SELECT p.nombre, SUM(vi.cantidad) as cantidad, SUM(vi.precio_unitario * vi.cantidad) as total
+      FROM ventas_items vi
+      JOIN productos p ON vi.producto_id = p.id
+      JOIN ventas v ON vi.venta_id = v.id
+      WHERE v.negocio_id = $1 AND DATE(v.created_at) = $2
+      GROUP BY p.id, p.nombre
+      ORDER BY cantidad DESC
+      LIMIT 5
+    `, [req.negocioId, hoy])
+
+    // 4. Ventas por Categoría
+    const porCategoria = await query(`
+      SELECT c.nombre as categoria, SUM(vi.precio_unitario * vi.cantidad) as total
+      FROM ventas_items vi
+      JOIN productos p ON vi.producto_id = p.id
+      JOIN categorias c ON p.categoria_id = c.id
+      JOIN ventas v ON vi.venta_id = v.id
+      WHERE v.negocio_id = $1 AND DATE(v.created_at) = $2
+      GROUP BY c.id, c.nombre
+      ORDER BY total DESC
+    `, [req.negocioId, hoy])
+
+    // 5. Ventas por Método de Pago
+    const porMetodo = await query(`
+      SELECT metodo_pago as metodo, SUM(total) as total
+      FROM ventas 
+      WHERE negocio_id = $1 AND DATE(created_at) = $2
+      GROUP BY metodo_pago
+    `, [req.negocioId, hoy])
+
     res.json({
-      ventas_hoy: parseFloat(ventasHoy.rows[0].total),
-      tickets_hoy: parseInt(ventasHoy.rows[0].count),
-      productos_vendidos: parseInt(productosVendidos.rows[0].total),
-      efectivo: parseFloat(ventasHoy.rows[0].efectivo)
+      resumen: {
+        total: parseFloat(general.rows[0].total_ventas),
+        tickets: parseInt(general.rows[0].num_tickets),
+        efectivo: parseFloat(general.rows[0].total_efectivo),
+        ganancia_neta: parseFloat(utilidad.rows[0].ganancia),
+        productos_vendidos: parseInt(general.rows[0].total_productos)
+      },
+      top_productos: topProductos.rows,
+      categorias: porCategoria.rows,
+      metodos: porMetodo.rows
     })
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener dashboard', error: error.message })
+    res.status(500).json({ message: 'Error al obtener analytics', error: error.message })
   }
 })
 

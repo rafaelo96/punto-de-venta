@@ -1,9 +1,6 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import api from '@/api'
 
-const api = axios.create({
-  baseURL: '/api'
-})
 
 export const useVentasStore = defineStore('ventas', {
   state: () => ({
@@ -88,7 +85,7 @@ export const useVentasStore = defineStore('ventas', {
             cantidad: item.cantidad,
             precio_unitario: item.precio
           })),
-          metodo_pago: this.metodoPago,
+          metodo_pago: datosPago.metodo || this.metodoPago,
           descuento_porcentaje: this.descuentoGlobal,
           total: this.total,
           efectivo: datosPago.efectivo || 0,

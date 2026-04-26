@@ -92,95 +92,129 @@
     </div>
 
     <!-- Modal Producto -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" @click.self="closeModal">
-      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-surface-900 flex items-center gap-2">
-            <component :is="editando ? Pencil : Plus" class="w-5 h-5" />
-            {{ editando ? 'Editar Producto' : 'Nuevo Producto' }}
-          </h3>
-          <button @click="closeModal" class="p-2 text-surface-400 hover:bg-surface-100 rounded-lg">
-            <X class="w-5 h-5" />
+    <div v-if="showModal" class="fixed inset-0 bg-surface-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="closeModal">
+      <div class="bg-white rounded-[2rem] p-6 lg:p-8 w-full max-w-lg shadow-2xl animate-scale-in relative overflow-hidden">
+        <!-- Decoración superior -->
+        <div class="absolute top-0 left-0 w-full h-2" :style="{ backgroundColor: colorPrincipal }"></div>
+        
+        <div class="flex justify-between items-center mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" :style="{ backgroundColor: colorPrincipal + '15' }">
+              <component :is="editando ? Pencil : Plus" class="w-6 h-6" :style="{ color: colorPrincipal }" />
+            </div>
+            <div>
+              <h3 class="text-xl font-black text-surface-900 leading-tight">
+                {{ editando ? 'Editar Producto' : 'Nuevo Producto' }}
+              </h3>
+              <p class="text-sm font-medium text-surface-500 mt-0.5">
+                {{ editando ? 'Modifica los detalles del producto' : 'Agrega un producto al catálogo' }}
+              </p>
+            </div>
+          </div>
+          <button @click="closeModal" class="p-2 text-surface-400 hover:bg-surface-100 hover:text-surface-700 rounded-xl transition-colors">
+            <X class="w-6 h-6" />
           </button>
         </div>
 
         <form @submit.prevent="guardarProducto" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-surface-700 mb-1">Nombre</label>
-            <input v-model="form.nombre" type="text" class="w-full px-4 py-2 border border-surface-200 rounded-xl" required />
+            <label class="block text-sm font-semibold text-surface-700 mb-1.5">Nombre del Producto</label>
+            <input v-model="form.nombre" type="text" placeholder="Ej. Coca Cola 600ml" class="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300" :style="{ '--tw-ring-color': colorPrincipal }" required />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-surface-700 mb-1">Código de Barras</label>
-            <input v-model="form.codigo_barras" type="text" class="w-full px-4 py-2 border border-surface-200 rounded-xl" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-surface-700 mb-1">Categoría</label>
-            <select v-model="form.categoria_id" class="w-full px-4 py-2 border border-surface-200 rounded-xl">
-              <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
-            </select>
-          </div>
+          
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-surface-700 mb-1">Precio Compra</label>
-              <input v-model.number="form.precio_compra" type="number" step="0.01" class="w-full px-4 py-2 border border-surface-200 rounded-xl" />
+              <label class="block text-sm font-semibold text-surface-700 mb-1.5">Código de Barras</label>
+              <input v-model="form.codigo_barras" type="text" placeholder="Opcional" class="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300" :style="{ '--tw-ring-color': colorPrincipal }" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-surface-700 mb-1">Precio Venta</label>
-              <input v-model.number="form.precio_venta" type="number" step="0.01" class="w-full px-4 py-2 border border-surface-200 rounded-xl" />
+              <label class="block text-sm font-semibold text-surface-700 mb-1.5">Categoría</label>
+              <select v-model="form.categoria_id" class="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300" :style="{ '--tw-ring-color': colorPrincipal }">
+                <option value="null" disabled>Selecciona una categoría...</option>
+                <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
+              </select>
             </div>
           </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-surface-700 mb-1">Stock</label>
-              <input v-model.number="form.stock" type="number" class="w-full px-4 py-2 border border-surface-200 rounded-xl" />
+              <label class="block text-sm font-semibold text-surface-700 mb-1.5">Precio de Compra</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-surface-500 font-medium">$</span>
+                <input v-model.number="form.precio_compra" type="number" step="0.01" class="w-full pl-8 pr-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300 font-medium" :style="{ '--tw-ring-color': colorPrincipal }" />
+              </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-surface-700 mb-1">Stock Mínimo</label>
-              <input v-model.number="form.stock_minimo" type="number" class="w-full px-4 py-2 border border-surface-200 rounded-xl" />
+              <label class="block text-sm font-semibold text-surface-700 mb-1.5">Precio de Venta</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-surface-500 font-medium">$</span>
+                <input v-model.number="form.precio_venta" type="number" step="0.01" class="w-full pl-8 pr-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300 font-medium" :style="{ '--tw-ring-color': colorPrincipal }" />
+              </div>
             </div>
           </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-surface-700 mb-1.5">Stock Disponible</label>
+              <input v-model.number="form.stock" type="number" class="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300 font-medium" :style="{ '--tw-ring-color': colorPrincipal }" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-surface-700 mb-1.5">Stock Mínimo (Alerta)</label>
+              <input v-model.number="form.stock_minimo" type="number" class="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300 font-medium" :style="{ '--tw-ring-color': colorPrincipal }" />
+            </div>
+          </div>
+
           <div>
-            <label class="block text-sm font-medium text-surface-700 mb-1">Imagen</label>
-            <div class="flex gap-2">
-              <label class="flex-1 flex items-center justify-center h-24 border-2 border-dashed border-surface-200 hover:border-primary-400 rounded-xl cursor-pointer transition-colors">
+            <label class="block text-sm font-semibold text-surface-700 mb-1.5">Imagen del Producto</label>
+            <div class="flex gap-3">
+              <label class="w-32 h-24 flex-shrink-0 flex items-center justify-center bg-surface-50 border-2 border-dashed border-surface-200 hover:border-surface-400 rounded-2xl cursor-pointer transition-all group overflow-hidden relative">
                 <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" ref="fileInput" />
                 <div v-if="imagenPreview && !imagenUrlInput" class="w-full h-full relative">
-                  <img :src="imagenPreview" class="w-full h-full object-contain rounded-xl" />
-                  <button type="button" @click.stop="eliminarImagen" class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
+                  <img :src="imagenPreview" class="w-full h-full object-cover" />
+                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Pencil class="w-5 h-5 text-white" />
+                  </div>
+                  <button type="button" @click.stop="eliminarImagen" class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-md hover:bg-red-600 transition-colors z-10">
                     <X class="w-3 h-3" />
                   </button>
                 </div>
-                <div v-else class="text-center text-surface-400">
-                  <Upload class="w-5 h-5 mx-auto mb-1" />
-                  <span class="text-xs">Subir</span>
+                <div v-else class="text-center text-surface-400 group-hover:text-surface-600 transition-colors">
+                  <Upload class="w-6 h-6 mx-auto mb-1" />
+                  <span class="text-xs font-medium">Subir foto</span>
                 </div>
               </label>
-              <div class="flex-1 relative">
-                <input 
-                  v-model="imagenUrlInput" 
-                  type="url" 
-                  placeholder="O pega una URL de imagen"
-                  class="w-full h-24 px-3 py-2 border border-surface-200 rounded-xl text-sm"
-                />
-                <button 
-                  v-if="imagenUrlInput" 
-                  type="button" 
-                  @click="aplicarUrlImagen"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors"
-                  :style="{ color: colorPrincipal }"
-                >
-                  <Check class="w-4 h-4" />
-                </button>
+              <div class="flex-1 flex flex-col justify-center">
+                <div class="relative">
+                  <input 
+                    v-model="imagenUrlInput" 
+                    type="url" 
+                    placeholder="O pega una URL de imagen válida..."
+                    class="w-full px-4 py-3 pr-12 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all hover:border-surface-300"
+                    :style="{ '--tw-ring-color': colorPrincipal }"
+                  />
+                  <button 
+                    v-if="imagenUrlInput" 
+                    type="button" 
+                    @click="aplicarUrlImagen"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-sm border border-surface-100 hover:bg-surface-50 transition-all hover:scale-105"
+                    :style="{ color: colorPrincipal }"
+                  >
+                    <Check class="w-4 h-4" />
+                  </button>
+                </div>
+                <div v-if="imagenPreviewUrl" class="mt-2 flex items-center gap-2 text-xs font-medium text-surface-500 bg-surface-100 w-max px-2 py-1 rounded-md">
+                  <Check class="w-3 h-3 text-green-500" /> {{ imagenUrlInput ? 'Enlazada' : 'Local' }}
+                </div>
               </div>
             </div>
-            <div v-if="imagenPreviewUrl" class="mt-2 flex items-center gap-2">
-              <img :src="imagenPreviewUrl" class="h-16 object-contain rounded-lg border border-surface-200" />
-              <span class="text-xs text-surface-500 flex-1">{{ imagenUrlInput ? 'URL' : 'Archivo local' }}</span>
-            </div>
           </div>
-          <button type="submit" class="w-full py-3 text-white font-medium rounded-xl" :style="{ backgroundColor: colorPrincipal }">
-            {{ editando ? 'Actualizar' : 'Crear' }}
-          </button>
+
+          <div class="pt-2">
+            <button type="submit" class="w-full py-4 text-white font-bold rounded-xl transition-all hover:opacity-90 flex items-center justify-center gap-2 text-base shadow-lg hover-lift" :style="{ backgroundColor: colorPrincipal, boxShadow: `0 8px 25px -5px ${colorPrincipal}60` }">
+              <component :is="editando ? Pencil : Plus" class="w-5 h-5" />
+              {{ editando ? 'Guardar Cambios' : 'Agregar Producto' }}
+            </button>
+          </div>
         </form>
       </div>
     </div>

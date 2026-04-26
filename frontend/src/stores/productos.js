@@ -1,17 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const api = axios.create({
-  baseURL: '/api'
-})
-
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('pos_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
+import api from '@/api'
 
 export const useProductosStore = defineStore('productos', {
   state: () => ({
@@ -137,7 +125,9 @@ export const useProductosStore = defineStore('productos', {
       try {
         const { data } = await api.patch(`/productos/${id}/stock`, { cantidad, tipo })
         const index = this.productos.findIndex(p => p.id === id)
-        if (index !== -1) this.productos[index] = data
+        if (index !== -1) {
+          this.productos[index] = { ...this.productos[index], ...data }
+        }
         return { success: true }
       } catch (error) {
         return { 
