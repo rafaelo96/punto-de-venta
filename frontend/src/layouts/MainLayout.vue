@@ -109,8 +109,8 @@
     </aside>
 
     <!-- Contenido Principal -->
-    <main class="pt-14 lg:pt-0 h-full lg:ml-20 xl:ml-64">
-      <div class="h-full overflow-auto">
+    <main class="pt-14 lg:pt-0 lg:ml-20 xl:ml-64 h-full">
+      <div class="h-full overflow-y-auto">
         <router-view />
       </div>
     </main>

@@ -1,9 +1,9 @@
 <template>
-  <div class="h-full flex flex-col lg:flex-row">
+  <div class="h-full flex flex-col lg:flex-row overflow-hidden">
     <!-- Panel Izquierdo: Búsqueda + Categorías + Productos -->
-    <div class="flex-1 flex flex-col min-w-0">
+    <div class="flex-1 flex flex-col min-w-0 h-full">
       <!-- Header: Buscador y Categorías -->
-      <header class="bg-white/80 backdrop-blur-sm border-b border-surface-200 p-3 lg:p-4">
+      <header class="bg-white/80 backdrop-blur-sm border-b border-surface-200 p-3 lg:p-4 flex-shrink-0">
         <div class="flex flex-col gap-3">
           <!-- Buscador -->
           <div class="relative">
@@ -18,11 +18,11 @@
             />
           </div>
           
-          <!-- Categorías scrollable -->
-          <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <!-- Categorías en múltiples líneas -->
+          <div class="flex flex-wrap gap-2 pb-1">
             <button
               @click="categoriaSeleccionada = 'todos'"
-              class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2"
+              class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 flex-shrink-0"
               :class="categoriaSeleccionada === 'todos' ? 'text-white' : 'bg-surface-100 text-surface-600 hover:bg-surface-200'"
               :style="categoriaSeleccionada === 'todos' ? { backgroundColor: colorPrincipal } : {}"
             >
@@ -33,7 +33,7 @@
               v-for="cat in categorias"
               :key="cat.id"
               @click="categoriaSeleccionada = cat.id"
-              class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2"
+              class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 flex-shrink-0"
               :class="categoriaSeleccionada === cat.id ? 'text-white' : 'bg-surface-100 text-surface-600 hover:bg-surface-200'"
               :style="categoriaSeleccionada === cat.id ? { backgroundColor: colorPrincipal } : {}"
             >
@@ -46,17 +46,17 @@
 
       <!-- Grid de Productos -->
       <div class="flex-1 overflow-auto p-3 lg:p-4">
-        <div v-if="loading" class="flex items-center justify-center h-full">
+        <div v-if="loading" class="flex items-center justify-center h-full min-h-0">
           <Loader2 class="w-8 h-8 animate-spin" :style="{ color: colorPrincipal }" />
         </div>
         
-        <div v-else-if="productosFiltrados.length === 0" class="flex flex-col items-center justify-center h-full text-surface-400">
+        <div v-else-if="productosFiltrados.length === 0" class="flex flex-col items-center justify-center h-full min-h-0 text-surface-400">
           <Package class="w-12 h-12 mb-3" />
           <p class="text-sm font-medium">Sin productos</p>
           <p class="text-xs">Agrega productos en la sección de Productos</p>
         </div>
 
-        <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 lg:gap-3">
+        <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 lg:gap-3 content-start">
           <div
             v-for="producto in productosFiltrados"
             :key="producto.id"
@@ -79,8 +79,8 @@
     </div>
 
     <!-- Panel Derecho: Carrito -->
-    <div class="w-full lg:w-80 xl:w-96 bg-white/80 backdrop-blur-sm border-t lg:border-t-0 lg:border-l border-surface-200 flex flex-col" style="max-height: 50vh lg:max-height: none;">
-      <div class="p-3 lg:p-4 border-b border-surface-100">
+    <div class="w-full lg:w-80 xl:w-96 bg-white/80 backdrop-blur-sm border-t lg:border-t-0 lg:border-l border-surface-200 flex flex-col h-full lg:h-auto lg:min-h-[calc(100vh-3.5rem)]" style="max-height: 50vh lg:max-height: none;">
+      <div class="p-3 lg:p-4 border-b border-surface-100 flex-shrink-0">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg flex items-center justify-center" :style="{ backgroundColor: colorPrincipal + '20' }">
