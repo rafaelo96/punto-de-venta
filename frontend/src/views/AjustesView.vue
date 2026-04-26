@@ -10,7 +10,7 @@
     </header>
 
     <div class="flex-1 overflow-auto p-6">
-      <div class="max-w-2xl space-y-6">
+      <div class="max-w-4xl mx-auto space-y-6">
         <!-- Datos del Negocio -->
         <div class="bg-white p-6 rounded-2xl border border-surface-100">
           <div class="flex items-center justify-between mb-4">
@@ -24,26 +24,28 @@
             </span>
           </div>
           
-          <div class="space-y-4">
-            <div class="flex items-start gap-6">
+<div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <!-- Logo -->
-              <div class="relative group">
-                <div 
-                  class="w-24 h-24 rounded-2xl border-2 border-dashed border-surface-300 flex items-center justify-center overflow-hidden transition-colors bg-surface-50"
-                  :style="{ borderColor: colorPrincipal }"
-                >
-                  <img v-if="negocio.logo" :src="negocio.logo.startsWith('http') ? negocio.logo : API_URL + negocio.logo + '?t=' + Date.now()" class="w-full h-full object-contain" />
-                  <Upload v-else class="w-8 h-8 text-surface-400" />
-                </div>
-                <input type="file" accept="image/*" @change="subirLogo" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                <div class="absolute bottom-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                  :style="{ backgroundColor: colorPrincipal }">
-                  <Plus class="w-3 h-3" />
+              <div class="md:col-span-1">
+                <div class="relative group">
+                  <div 
+                    class="w-32 h-32 mx-auto md:mx-0 rounded-2xl border-2 border-dashed border-surface-300 flex items-center justify-center overflow-hidden transition-colors bg-surface-50"
+                    :style="{ borderColor: colorPrincipal }"
+                  >
+                    <img v-if="negocio.logo" :src="negocio.logo.startsWith('http') ? negocio.logo : API_URL + negocio.logo + '?t=' + Date.now()" class="w-full h-full object-contain" />
+                    <Upload v-else class="w-8 h-8 text-surface-400" />
+                  </div>
+                  <input type="file" accept="image/*" @change="subirLogo" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                  <div class="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    :style="{ backgroundColor: colorPrincipal }">
+                    <Plus class="w-4 h-4" />
+                  </div>
                 </div>
               </div>
-              
+               
               <!-- Nombre y Color -->
-              <div class="flex-1 space-y-3">
+              <div class="md:col-span-2 space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-surface-700 mb-2 flex items-center gap-2">
                     <Building2 class="w-4 h-4 text-surface-400" />
@@ -61,7 +63,7 @@
                     <Palette class="w-4 h-4 text-surface-400" />
                     Color Principal
                   </label>
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3 flex-wrap">
                     <input 
                       type="color" 
                       v-model="negocio.color" 
@@ -86,7 +88,7 @@
             </div>
             
             <!-- Dirección y Teléfono -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-surface-700 mb-2 flex items-center gap-2">
                   <MapPin class="w-4 h-4 text-surface-400" />
@@ -212,6 +214,20 @@
                 :style="{ accentColor: colorPrincipal }"
               />
             </label>
+            <label class="flex items-center justify-between p-3 bg-surface-50 rounded-xl cursor-pointer hover:bg-surface-100 transition-colors">
+              <span class="flex items-center gap-2 text-surface-700">
+                <LayoutGrid class="w-4 h-4" />
+                Vista por defecto (tarjetas)
+              </span>
+              <select 
+                v-model="preferencias.vista" 
+                @change="guardarPreferencias" 
+                class="px-3 py-2 border border-surface-200 rounded-lg text-sm"
+              >
+                <option value="cards">Tarjetas</option>
+                <option value="lista">Lista</option>
+              </select>
+            </label>
           </div>
         </div>
       </div>
@@ -226,7 +242,7 @@ import { applyThemeColor, config, saveConfig } from '@/stores/config'
 import { 
   Settings, Store, Upload, Plus, Check, Save, Building2,
   Palette, MapPin, Phone, Tag, Folder, Trash2, AlertCircle,
-  Sliders, Receipt, Volume2, Eye
+  Sliders, Receipt, Volume2, Eye, LayoutGrid
 } from 'lucide-vue-next'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -239,7 +255,7 @@ const colorPrincipal = computed(() => {
 })
 
 const negocio = reactive({ nombre: '', direccion: '', telefono: '', logo: '', color: '#3b82f6' })
-const preferencias = reactive({ emitir_ticket: true, sonido: true, mostrar_stock: true })
+const preferencias = reactive({ emitir_ticket: true, sonido: true, mostrar_stock: true, vista: 'cards' })
 const categorias = ref([])
 const nuevaCategoria = ref('')
 const guardando = ref(false)
@@ -258,6 +274,7 @@ const fetchConfiguraciones = async () => {
     preferencias.emitir_ticket = data.emitir_ticket === 'true'
     preferencias.sonido = data.sonido === 'true'
     preferencias.mostrar_stock = data.mostrar_stock === 'true'
+    preferencias.vista = data.vista || 'cards'
     
     applyThemeColor(negocio.color)
   } catch (e) {

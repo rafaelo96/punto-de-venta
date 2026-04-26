@@ -74,7 +74,7 @@ router.put('/', async (req, res) => {
       )
     }
     
-    const configKeys = ['emitir_ticket', 'sonido', 'mostrar_stock', 'direccion_negocio', 'telefono_negocio']
+    const configKeys = ['emitir_ticket', 'sonido', 'mostrar_stock', 'direccion_negocio', 'telefono_negocio', 'vista']
     for (const clave of configKeys) {
       if (configs[clave] !== undefined) {
         await query(

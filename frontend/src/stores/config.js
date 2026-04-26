@@ -17,6 +17,7 @@ export const config = reactive({
   emitir_ticket: true,
   sonido: true,
   mostrar_stock: true,
+  vista: 'cards',
   nombre_negocio: '',
   direccion_negocio: '',
   telefono_negocio: '',
@@ -66,6 +67,7 @@ export const fetchConfig = async () => {
     config.emitir_ticket = data.emitir_ticket === 'true'
     config.sonido = data.sonido === 'true'
     config.mostrar_stock = data.mostrar_stock === 'true'
+    config.vista = data.vista || 'cards'
     
     if (data.color_principal) {
       config.color_principal = data.color_principal
@@ -78,7 +80,7 @@ export const fetchConfig = async () => {
 
 export const saveConfig = async (updates) => {
   try {
-    await axios.put('/api/configuraciones', updates)
+    await api.put('/configuraciones', updates)
     Object.assign(config, updates)
     if (updates.color_principal) {
       applyThemeColor(updates.color_principal)
