@@ -90,8 +90,9 @@
             <tr v-for="producto in productos" :key="producto.id" class="divide-x divide-surface-50 hover:bg-surface-50/50 transition-colors">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-surface-100 flex items-center justify-center">
-                    <Package class="w-5 h-5 text-surface-400" />
+                  <div class="w-10 h-10 rounded-lg bg-surface-100 flex items-center justify-center overflow-hidden">
+                    <img v-if="producto.imagen" :src="producto.imagen" class="w-full h-full object-cover" @error="producto.imagen = null" />
+                    <Package v-else class="w-5 h-5 text-surface-400" />
                   </div>
                   <div>
                     <p class="font-medium text-surface-900">{{ producto.nombre }}</p>

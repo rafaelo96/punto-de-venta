@@ -90,7 +90,8 @@
             <div>
               <div class="aspect-square bg-surface-50/50 rounded-xl mb-3 flex items-center justify-center group-hover:bg-primary-50/50 transition-colors overflow-hidden relative">
                 <div class="absolute inset-0 bg-gradient-to-tr from-surface-100/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <Package class="w-8 h-8 text-surface-300 group-hover:text-primary-400 transition-colors transform group-hover:scale-110 duration-300" />
+                <img v-if="producto.imagen" :src="producto.imagen" class="w-full h-full object-cover rounded-xl" @error="producto.imagen = null" />
+                <Package v-else class="w-8 h-8 text-surface-300 group-hover:text-primary-400 transition-colors transform group-hover:scale-110 duration-300" />
               </div>
               <h3 class="font-semibold text-surface-800 text-sm lg:text-base leading-tight mb-2 line-clamp-2" :title="producto.nombre">{{ producto.nombre }}</h3>
             </div>
@@ -111,8 +112,9 @@
             @click="agregarAlCarrito(producto)"
             class="bg-white p-3 rounded-xl border border-surface-100 cursor-pointer shadow-soft hover-lift group animate-fade-in flex items-center gap-4"
           >
-            <div class="w-12 h-12 bg-surface-50 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Package class="w-6 h-6 text-surface-300" />
+            <div class="w-12 h-12 bg-surface-50 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <img v-if="producto.imagen" :src="producto.imagen" class="w-full h-full object-cover" @error="producto.imagen = null" />
+              <Package v-else class="w-6 h-6 text-surface-300" />
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="font-semibold text-surface-800 text-sm truncate">{{ producto.nombre }}</h3>

@@ -53,8 +53,9 @@
             <tr v-for="producto in productosFiltrados" :key="producto.id" class="border-b border-surface-50 hover:bg-surface-50/50 transition-colors">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-surface-100 flex items-center justify-center">
-                    <Package class="w-5 h-5 text-surface-400" />
+                  <div class="w-10 h-10 rounded-lg bg-surface-100 flex items-center justify-center overflow-hidden">
+                    <img v-if="producto.imagen" :src="producto.imagen" class="w-full h-full object-cover" @error="producto.imagen = null" />
+                    <Package v-else class="w-5 h-5 text-surface-400" />
                   </div>
                   <div>
                     <p class="font-medium text-surface-900">{{ producto.nombre }}</p>
@@ -138,6 +139,45 @@
               <input v-model.number="form.stock_minimo" type="number" class="w-full px-4 py-2 border border-surface-200 rounded-xl" />
             </div>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-surface-700 mb-1">Imagen</label>
+            <div class="flex gap-2">
+              <label class="flex-1 flex items-center justify-center h-24 border-2 border-dashed border-surface-200 hover:border-primary-400 rounded-xl cursor-pointer transition-colors">
+                <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" ref="fileInput" />
+                <div v-if="imagenPreview && !imagenUrlInput" class="w-full h-full relative">
+                  <img :src="imagenPreview" class="w-full h-full object-contain rounded-xl" />
+                  <button type="button" @click.stop="eliminarImagen" class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
+                    <X class="w-3 h-3" />
+                  </button>
+                </div>
+                <div v-else class="text-center text-surface-400">
+                  <Upload class="w-5 h-5 mx-auto mb-1" />
+                  <span class="text-xs">Subir</span>
+                </div>
+              </label>
+              <div class="flex-1 relative">
+                <input 
+                  v-model="imagenUrlInput" 
+                  type="url" 
+                  placeholder="O pega una URL de imagen"
+                  class="w-full h-24 px-3 py-2 border border-surface-200 rounded-xl text-sm"
+                />
+                <button 
+                  v-if="imagenUrlInput" 
+                  type="button" 
+                  @click="aplicarUrlImagen"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors"
+                  :style="{ color: colorPrincipal }"
+                >
+                  <Check class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div v-if="imagenPreviewUrl" class="mt-2 flex items-center gap-2">
+              <img :src="imagenPreviewUrl" class="h-16 object-contain rounded-lg border border-surface-200" />
+              <span class="text-xs text-surface-500 flex-1">{{ imagenUrlInput ? 'URL' : 'Archivo local' }}</span>
+            </div>
+          </div>
           <button type="submit" class="w-full py-3 text-white font-medium rounded-xl" :style="{ backgroundColor: colorPrincipal }">
             {{ editando ? 'Actualizar' : 'Crear' }}
           </button>
@@ -150,8 +190,9 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useProductosStore } from '@/stores/productos'
-import { Plus, Search, Package, Tag, Pencil, Trash2, X } from 'lucide-vue-next'
+import { Plus, Search, Package, Tag, Pencil, Trash2, X, Upload, Check } from 'lucide-vue-next'
 import { config } from '@/stores/config'
+import axios from 'axios'
 
 const productosStore = useProductosStore()
 const colorPrincipal = computed(() => config.color_principal || '#3b82f6')
@@ -160,6 +201,13 @@ const showModal = ref(false)
 const editando = ref(false)
 const productoId = ref(null)
 const searchQuery = ref('')
+const fileInput = ref(null)
+const imagenFile = ref(null)
+const imagenPreview = ref('')
+const imagenPreviewUrl = ref('')
+const imagenOriginal = ref('')
+const imagenUrlInput = ref('')
+const imagenEsUrl = ref(false)
 
 const form = reactive({
   nombre: '',
@@ -191,6 +239,11 @@ const editarProducto = (producto) => {
   form.precio_venta = producto.precio_venta
   form.stock = producto.stock
   form.stock_minimo = producto.stock_minimo
+  imagenOriginal.value = producto.imagen || ''
+  imagenPreview.value = producto.imagen || ''
+  imagenPreviewUrl.value = producto.imagen || ''
+  imagenUrlInput.value = ''
+  imagenEsUrl.value = producto.imagen?.startsWith('http') || false
   showModal.value = true
 }
 
@@ -201,11 +254,34 @@ const confirmarEliminar = async (producto) => {
 }
 
 const guardarProducto = async () => {
+  const token = localStorage.getItem('pos_token')
+  
   if (editando.value) {
     await productosStore.actualizarProducto(productoId.value, form)
+    
+    if (imagenFile.value) {
+      await subirImagen(productoId.value)
+    } else if (imagenEsUrl.value && imagenUrlInput.value) {
+      await axios.put(`/api/productos/${productoId.value}/imagen`, { imagen: imagenUrlInput.value }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    } else if (!imagenPreviewUrl.value && imagenOriginal.value) {
+      await axios.put(`/api/productos/${productoId.value}/imagen`, { imagen: null }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    }
   } else {
-    await productosStore.crearProducto(form)
+    const nuevoProducto = await productosStore.crearProducto(form)
+    
+    if (imagenFile.value && nuevoProducto?.id) {
+      await subirImagen(nuevoProducto.id)
+    } else if (imagenEsUrl.value && imagenUrlInput.value && nuevoProducto?.id) {
+      await axios.put(`/api/productos/${nuevoProducto.id}/imagen`, { imagen: imagenUrlInput.value }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    }
   }
+  productosStore.fetchProductos()
   closeModal()
 }
 
@@ -220,6 +296,54 @@ const closeModal = () => {
   form.precio_venta = 0
   form.stock = 0
   form.stock_minimo = 5
+  imagenFile.value = null
+  imagenPreview.value = ''
+  imagenPreviewUrl.value = ''
+  imagenOriginal.value = ''
+  imagenUrlInput.value = ''
+  imagenEsUrl.value = false
+}
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  imagenFile.value = file
+  imagenPreview.value = URL.createObjectURL(file)
+  imagenPreviewUrl.value = URL.createObjectURL(file)
+  imagenUrlInput.value = ''
+  imagenEsUrl.value = false
+}
+
+const aplicarUrlImagen = () => {
+  if (imagenUrlInput.value) {
+    imagenPreviewUrl.value = imagenUrlInput.value
+    imagenFile.value = null
+    imagenEsUrl.value = true
+  }
+}
+
+const eliminarImagen = () => {
+  imagenFile.value = null
+  imagenPreview.value = ''
+  imagenPreviewUrl.value = ''
+  imagenUrlInput.value = ''
+  imagenEsUrl.value = false
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+const subirImagen = async (productoId) => {
+  if (!imagenFile.value) return
+  const formData = new FormData()
+  formData.append('imagen', imagenFile.value)
+  
+  const token = localStorage.getItem('pos_token')
+  await axios.post(`/api/productos/${productoId}/imagen`, formData, {
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  productosStore.fetchProductos()
 }
 
 onMounted(() => {

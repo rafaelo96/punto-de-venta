@@ -15,6 +15,10 @@ export default defineConfig({
       '/api': {
         target: 'http://pos-backend:3000',
         changeOrigin: true
+      },
+      '/uploads': {
+        target: 'http://pos-backend:3000',
+        changeOrigin: true
       }
     }
   }

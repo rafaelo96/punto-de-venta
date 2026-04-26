@@ -84,7 +84,7 @@ export const useProductosStore = defineStore('productos', {
       try {
         const { data } = await api.post('/productos', productoData)
         this.productos.push(data)
-        return { success: true }
+        return { success: true, ...data }
       } catch (error) {
         return { 
           success: false, 

@@ -1,15 +1,57 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { authenticate } from '../middleware/auth.js'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const router = Router()
 router.use(authenticate)
+
+const getStoragePath = (negocioId) => {
+  const storageDir = path.join(__dirname, `../../uploads/${negocioId}/productos`)
+  if (!fs.existsSync(storageDir)) {
+    fs.mkdirSync(storageDir, { recursive: true })
+  }
+  return storageDir
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, getStoragePath(req.negocioId)),
+  filename: (req, file, cb) => cb(null, `producto_${req.params.id}${path.extname(file.originalname)}`)
+})
+
+const uploadProducto = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 } })
+
+router.post('/:id/imagen', uploadProducto.single('imagen'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se recibió imagen' })
+    }
+    const imagenPath = `/uploads/${req.negocioId}/productos/${req.file.filename}`
+    const result = await query(`
+      UPDATE productos 
+      SET imagen = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2 AND negocio_id = $3
+      RETURNING *
+    `, [imagenPath, req.params.id, req.negocioId])
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' })
+    }
+    res.json(result.rows[0])
+  } catch (error) {
+    res.status(500).json({ message: 'Error al subir imagen', error: error.message })
+  }
+})
 
 router.get('/', async (req, res) => {
   try {
     const result = await query(`
       SELECT 
-        p.id, p.nombre, p.codigo_barras, p.categoria_id, p.stock, p.stock_minimo, p.activo,
+        p.id, p.nombre, p.codigo_barras, p.categoria_id, p.stock, p.stock_minimo, p.activo, p.imagen,
         c.nombre as categoria_nombre,
         p.precio_compra::numeric(10,2) as precio_compra,
         p.precio_venta::numeric(10,2) as precio_venta
