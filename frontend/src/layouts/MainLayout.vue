@@ -1,21 +1,23 @@
 <template>
-  <div class="flex flex-col h-screen bg-gradient-to-br from-surface-50 to-surface-100 overflow-hidden">
+  <div class="flex flex-col h-screen overflow-hidden transition-colors duration-300" :class="isDark ? 'bg-[#1e222a]' : 'bg-gradient-to-br from-[#fafafa] to-[#f5f5f5]'">
     <!-- Mobile Header -->
-    <header class="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/80 backdrop-blur-sm border-b border-surface-200 z-40 flex items-center justify-between px-4">
-      <button @click="sidebarOpen = !sidebarOpen" class="p-2 text-surface-600 hover:bg-surface-100 rounded-lg">
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-14 z-40 flex items-center justify-between px-4 transition-colors duration-300" :class="isDark ? 'bg-[#262a36] border-[#2d3342]' : 'bg-white/90 backdrop-blur-sm border-neutral-200/50'">
+      <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg transition-all hover-lift" :class="isDark ? 'text-neutral-400 hover:bg-[#2d3342]' : 'text-neutral-600 hover:bg-neutral-100/50'">
         <Menu class="w-6 h-6" />
       </button>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-3">
         <div 
-          class="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
-          :style="{ backgroundColor: negocioColor }"
+          class="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md"
+          :style="{ backgroundColor: 'rgb(var(--color-primary))' }"
         >
           <img v-if="negocioLogo" :src="negocioLogo" class="w-full h-full object-contain" />
-          <ShoppingCart v-else class="w-4 h-4 text-white" />
+          <ShoppingCart v-else class="w-5 h-5 text-white" />
         </div>
-        <span class="font-bold text-surface-900 text-sm">{{ negocioNombre }}</span>
+        <span class="font-semibold text-base tracking-wider" :class="isDark ? 'text-white' : 'text-neutral-900'">{{ negocioNombre }}</span>
       </div>
-      <button @click="logout" class="p-2 text-surface-400 hover:text-red-500 rounded-lg">
+      <button @click="logout" class="p-2.5 rounded-lg transition-all duration-300 hover-lift" 
+        :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }"
+      >
         <LogOut class="w-5 h-5" />
       </button>
     </header>
@@ -23,96 +25,94 @@
     <!-- Mobile Sidebar Overlay -->
     <div 
       v-if="sidebarOpen" 
-      class="lg:hidden fixed inset-0 bg-black/50 z-40"
+      class="lg:hidden fixed inset-0 bg-black/60 z-40"
       @click="sidebarOpen = false"
     ></div>
     
     <!-- Sidebar -->
     <aside 
-      class="lg:hidden fixed left-0 top-14 bottom-0 w-64 bg-white/95 backdrop-blur-sm border-r border-surface-200 flex flex-col shadow-xl z-50 transition-transform"
-      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+      class="lg:hidden fixed left-0 top-14 bottom-0 w-64 flex flex-col z-50 transition-transform transition-colors duration-300"
+      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', isDark ? 'bg-[#262a36] border-r-[#2d3342]' : 'bg-white/95 backdrop-blur-sm border-r-neutral-200/50']"
     >
-      <nav class="flex-1 p-4 space-y-1">
+      <nav class="flex-1 p-4 space-y-2">
         <router-link
           v-for="(item, index) in menuItems"
           :key="item.path"
           :to="item.path"
           @click="sidebarOpen = false"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
-          :class="isActive(item.path) ? 'text-white' : 'text-surface-600 hover:bg-surface-50'"
-          :style="isActive(item.path) ? { backgroundColor: negocioColor } : {}"
+          class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover-lift"
+          :class="isActive(item.path) ? 'shadow-lg' : (isDark ? 'text-neutral-400 hover:bg-neutral-700 hover:text-white' : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900')"
+          :style="isActive(item.path) ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
         >
-          <component :is="item.icon" class="w-5 h-5" />
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center">
+            <component :is="item.icon" class="w-5 h-5" />
+          </div>
           <span class="font-medium">{{ item.name }}</span>
         </router-link>
       </nav>
     </aside>
-
+    
     <!-- Desktop Sidebar (fixed) -->
-    <aside class="hidden lg:block fixed left-0 top-0 bottom-0 w-20 xl:w-64 bg-white/80 backdrop-blur-sm border-r border-white/50 flex flex-col shadow-lg z-30">
+    <aside class="hidden lg:block fixed left-0 top-0 bottom-0 w-20 xl:w-64 flex flex-col z-30 transition-colors duration-300" :class="isDark ? 'bg-[#262a36] border-r-[#2d3342]' : 'bg-white/90 backdrop-blur-sm border-r-neutral-200/50'">
       <!-- Logo -->
-      <div class="p-4 border-b border-surface-100/50">
-        <div class="flex items-center justify-center xl:justify-start gap-3">
+      <div class="p-4 border-b transition-colors duration-300" :class="isDark ? 'border-[#2d3342]' : 'border-neutral-200/50'">
+        <div class="flex items-center justify-center xl:justify-start gap-4">
           <div 
-            class="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden shadow-lg transition-transform hover:scale-105"
-            :style="{ backgroundColor: negocioColor }"
+            class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl transition-transform duration-300 group-hover:scale-105"
+            :style="{ backgroundColor: 'rgb(var(--color-primary))' }"
           >
-<img v-if="negocioLogo" :src="negocioLogo + '?t=' + Date.now()" class="w-full h-full object-contain" />
+            <img v-if="negocioLogo" :src="negocioLogo + '?t=' + Date.now()" class="w-full h-full object-contain" />
             <ShoppingCart v-else class="w-6 h-6 text-white" />
           </div>
-          <span class="hidden xl:block text-lg font-bold text-surface-900">{{ negocioNombre }}</span>
+          <span class="hidden xl:block text-xl font-bold tracking-wider transition-colors duration-300" :class="isDark ? 'text-white' : 'text-neutral-900'">{{ negocioNombre }}</span>
         </div>
       </div>
-
+      
       <!-- Navegación -->
-      <nav class="flex-1 p-2 xl:p-4 space-y-1 overflow-y-auto">
+      <nav class="flex-1 p-2 xl:p-4 space-y-2 overflow-y-auto">
         <router-link
           v-for="(item, index) in menuItems"
           :key="item.path"
           :to="item.path"
-          class="group flex items-center gap-3 px-3 xl:px-4 py-3 rounded-xl transition-all duration-300"
-          :class="[
-            isActive(item.path) 
-              ? 'text-white shadow-lg' 
-              : 'text-surface-600 hover:bg-surface-50/80 hover:text-surface-900'
-          ]"
-          :style="isActive(item.path) ? { backgroundColor: negocioColor } : {}"
+          class="group flex items-center gap-4 px-3 xl:px-4 py-3 rounded-xl transition-all duration-300 hover-lift"
+          :class="isActive(item.path) ? 'shadow-lg' : (isDark ? 'text-neutral-400 hover:bg-[#2d3342] hover:text-white' : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900')"
+          :style="isActive(item.path) ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
         >
           <div 
-            class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-            :class="isActive(item.path) ? 'bg-white/20' : 'bg-surface-100 group-hover:bg-surface-200'"
+            class="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300"
+            :class="isActive(item.path) ? 'bg-white/10' : (isDark ? 'bg-[#2d3342] group-hover:bg-[#353b4a]' : 'bg-neutral-50 group-hover:bg-neutral-100')"
           >
-            <component :is="item.icon" class="w-5 h-5" />
+            <component :is="item.icon" class="w-6 h-6" :class="isActive(item.path) ? 'text-white' : ''" />
           </div>
-          <span class="hidden xl:block font-medium">{{ item.name }}</span>
+          <span class="hidden xl:block font-medium transition-colors duration-300" :class="isActive(item.path) ? 'text-white' : ''">{{ item.name }}</span>
         </router-link>
       </nav>
-
+      
       <!-- Usuario -->
-      <div class="p-3 xl:p-4 border-t border-surface-100/50">
-        <div class="flex items-center justify-center xl:justify-start gap-3">
+      <div class="p-3 xl:p-4 border-t transition-colors duration-300" :class="isDark ? 'border-[#2d3342]' : 'border-neutral-200/50'">
+        <div class="flex items-center justify-center xl:justify-start gap-4">
           <div 
-            class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
-            :style="{ backgroundColor: negocioColor }"
+            class="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-xl"
+            :style="{ backgroundColor: 'rgb(var(--color-primary))' }"
           >
             {{ userInitials }}
           </div>
           <div class="hidden xl:flex flex-col min-w-0">
-            <p class="text-sm font-medium text-surface-900 truncate">{{ userName }}</p>
-            <p class="text-xs text-surface-500 capitalize">{{ userRole }}</p>
+            <p class="text-sm font-medium truncate" :class="isDark ? 'text-white' : 'text-neutral-900'">{{ userName }}</p>
+            <p class="text-xs capitalize" :class="isDark ? 'text-neutral-400' : 'text-neutral-500'">{{ userRole }}</p>
           </div>
-          <button @click="logout" class="p-2 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Cerrar sesión">
+          <button @click="logout" class="p-2.5 rounded-lg transition-all duration-300 hover-lift" 
+          :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }"
+        >
             <LogOut class="w-5 h-5" />
           </button>
         </div>
       </div>
     </aside>
-
+    
     <!-- Contenido Principal -->
-    <main class="pt-14 lg:pt-0 lg:ml-20 xl:ml-64 h-full">
-      <div class="h-full overflow-y-auto">
-        <router-view />
-      </div>
+    <main class="pt-14 lg:pt-0 lg:ml-20 xl:ml-64 h-full flex-1 overflow-y-auto">
+      <router-view />
     </main>
   </div>
 </template>
@@ -122,7 +122,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { fetchConfig, config } from '@/stores/config'
-import { ShoppingCart, LayoutGrid, Package, BarChart3, Settings, LogOut, Warehouse, TrendingUp, Wrench, Menu } from 'lucide-vue-next'
+import { ShoppingCart, LayoutGrid, Package, BarChart3, Settings, LogOut, Warehouse, TrendingUp, Wrench, Menu, History, FileText } from 'lucide-vue-next'
 
 const router = useRouter()
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -130,6 +130,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 const route = useRoute()
 const authStore = useAuthStore()
 const sidebarOpen = ref(false)
+const isDark = ref(document.documentElement.classList.contains('dark'))
 
 watch(() => route.path, () => {
   sidebarOpen.value = false
@@ -153,6 +154,8 @@ const menuItems = [
   { name: 'Productos', path: '/productos', icon: Package },
   { name: 'Inventario', path: '/inventario', icon: Warehouse },
   { name: 'Analytics', path: '/analytics', icon: TrendingUp },
+  { name: 'Reportes', path: '/reportes', icon: FileText },
+  { name: 'Historial', path: '/historial', icon: History },
   { name: 'Ajustes', path: '/ajustes', icon: Wrench }
 ]
 

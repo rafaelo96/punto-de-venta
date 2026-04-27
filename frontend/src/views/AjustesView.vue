@@ -1,85 +1,87 @@
 <template>
-  <div class="h-full flex flex-col">
-    <header class="bg-white/80 backdrop-blur-sm border-b border-surface-200 px-6 py-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="{ backgroundColor: colorPrincipal + '20' }">
-          <Settings class="w-5 h-5" :style="{ color: colorPrincipal }" />
+  <div class="h-full flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100">
+    <header class="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50 px-8 py-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" :style="{ backgroundColor: 'rgb(var(--color-primary))' }">
+          <Settings class="w-6 h-6 text-white" />
         </div>
-        <h1 class="text-xl font-bold text-surface-900">Ajustes</h1>
+        <div>
+          <h1 class="text-2xl font-bold text-neutral-900 tracking-tight">Ajustes</h1>
+          <p class="text-sm text-neutral-500">Configuración del sistema</p>
+        </div>
       </div>
     </header>
 
-    <div class="flex-1 overflow-auto p-6">
+    <div class="flex-1 overflow-auto p-8">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Datos del Negocio -->
-        <div class="bg-white p-6 rounded-2xl border border-surface-100">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="font-semibold text-surface-900 flex items-center gap-2">
-              <Store class="w-5 h-5 text-surface-400" />
+        <div class="section-container">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="font-semibold text-neutral-900 text-lg flex items-center gap-3">
+              <Store class="w-6 h-6" :style="{ color: 'rgb(var(--color-primary))' }" />
               Datos del Negocio
             </h2>
-            <span v-if="guardado" class="text-sm text-green-600 flex items-center gap-1">
+            <span v-if="guardado" class="text-sm text-emerald-600 flex items-center gap-2">
               <Check class="w-4 h-4" />
               Guardado
             </span>
           </div>
           
-<div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
               <!-- Logo -->
               <div class="md:col-span-1">
                 <div class="relative group">
                   <div 
-                    class="w-32 h-32 mx-auto md:mx-0 rounded-2xl border-2 border-dashed border-surface-300 flex items-center justify-center overflow-hidden transition-colors bg-surface-50"
-                    :style="{ borderColor: colorPrincipal }"
+                    class="w-36 h-36 mx-auto md:mx-0 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center overflow-hidden transition-colors bg-neutral-50"
+                    :style="{ borderColor: 'rgb(var(--color-primary))' }"
                   >
                     <img v-if="negocio.logo" :src="negocio.logo.startsWith('http') ? negocio.logo : API_URL + negocio.logo + '?t=' + Date.now()" class="w-full h-full object-contain" />
-                    <Upload v-else class="w-8 h-8 text-surface-400" />
+                    <Upload v-else class="w-10 h-10 text-neutral-400" />
                   </div>
                   <input type="file" accept="image/*" @change="subirLogo" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                  <div class="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    :style="{ backgroundColor: colorPrincipal }">
-                    <Plus class="w-4 h-4" />
+                  <div class="absolute bottom-2 right-2 w-10 h-10 rounded-full flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    :style="{ backgroundColor: 'rgb(var(--color-primary))' }">
+                    <Plus class="w-5 h-5" />
                   </div>
                 </div>
               </div>
-               
+                
               <!-- Nombre y Color -->
-              <div class="md:col-span-2 space-y-4">
+              <div class="md:col-span-2 space-y-6">
                 <div>
-                  <label class="block text-sm font-medium text-surface-700 mb-2 flex items-center gap-2">
-                    <Building2 class="w-4 h-4 text-surface-400" />
+                  <label class="block text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+                    <Building2 class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                     Nombre del Negocio
                   </label>
                   <input 
                     v-model="negocio.nombre" 
                     type="text" 
-                    class="w-full px-4 py-3 border border-surface-200 rounded-xl focus:outline-none focus:ring-2"
-                    :style="{ '--tw-ring-color': colorPrincipal }"
+                    class="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2"
+                    :style="{ '--tw-ring-color': 'rgb(var(--color-primary))' }"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-surface-700 mb-2 flex items-center gap-2">
-                    <Palette class="w-4 h-4 text-surface-400" />
+                  <label class="block text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+                    <Palette class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                     Color Principal
                   </label>
-                  <div class="flex items-center gap-3 flex-wrap">
+                  <div class="flex items-center gap-4 flex-wrap">
                     <input 
                       type="color" 
                       v-model="negocio.color" 
-                      class="w-12 h-12 rounded-xl cursor-pointer border-0 p-0 overflow-hidden"
+                      class="w-14 h-14 rounded-2xl cursor-pointer border-0 p-0 overflow-hidden shadow-lg"
                     />
                     <input 
                       type="text" 
                       v-model="negocio.color" 
-                      class="w-28 px-3 py-2 border border-surface-200 rounded-xl font-mono text-sm uppercase"
+                      class="w-32 px-4 py-3 border border-neutral-200 rounded-xl font-mono text-sm uppercase"
                     />
                     <button 
                       @click="aplicarColor" 
-                      class="px-4 py-2 rounded-xl text-white text-sm font-medium transition-all hover:opacity-90 flex items-center gap-2"
-                      :style="{ backgroundColor: negocio.color }"
+                      class="btn flex items-center gap-2 px-5 py-3"
                     >
-                      <Check class="w-4 h-4" />
+                      <Check class="w-5 h-5" />
                       Aplicar
                     </button>
                   </div>
@@ -88,145 +90,172 @@
             </div>
             
             <!-- Dirección y Teléfono -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-surface-700 mb-2 flex items-center gap-2">
-                  <MapPin class="w-4 h-4 text-surface-400" />
+                <label class="block text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+                  <MapPin class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                   Dirección
                 </label>
                 <textarea 
                   v-model="negocio.direccion" 
                   rows="2" 
-                  class="w-full px-4 py-3 border border-surface-200 rounded-xl focus:outline-none focus:ring-2"
-                  :style="{ '--tw-ring-color': colorPrincipal }"
+                  class="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2"
+                  :style="{ '--tw-ring-color': 'rgb(var(--color-primary))' }"
                 ></textarea>
               </div>
               <div>
-                <label class="block text-sm font-medium text-surface-700 mb-2 flex items-center gap-2">
-                  <Phone class="w-4 h-4 text-surface-400" />
+                <label class="block text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+                  <Phone class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                   Teléfono
                 </label>
                 <input 
                   v-model="negocio.telefono" 
                   type="text" 
-                  class="w-full px-4 py-3 border border-surface-200 rounded-xl focus:outline-none focus:ring-2"
-                  :style="{ '--tw-ring-color': colorPrincipal }"
+                  class="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2"
+                  :style="{ '--tw-ring-color': 'rgb(var(--color-primary))' }"
                 />
               </div>
             </div>
             
             <button 
               @click="guardarNegocio" 
-              class="px-6 py-3 rounded-xl text-white font-medium transition-all hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
-              :style="{ backgroundColor: colorPrincipal }"
+              class="btn flex items-center gap-3 px-6 py-4"
               :disabled="guardando"
             >
-              <Save class="w-4 h-4" />
+              <Save class="w-5 h-5" />
               {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
             </button>
           </div>
         </div>
 
         <!-- Categorías -->
-        <div class="bg-white p-6 rounded-2xl border border-surface-100">
-          <h2 class="font-semibold text-surface-900 mb-4 flex items-center gap-2">
-            <Tag class="w-5 h-5 text-surface-400" />
+        <div class="section-container">
+          <h2 class="font-semibold text-neutral-900 text-lg mb-6 flex items-center gap-3">
+            <Tag class="w-6 h-6" :style="{ color: 'rgb(var(--color-primary))' }" />
             Categorías
           </h2>
-          <div class="space-y-2 mb-4">
-            <div v-for="cat in categorias" :key="cat.id" class="flex items-center justify-between p-3 bg-surface-50 rounded-xl">
-              <span class="font-medium flex items-center gap-2">
-                <Folder class="w-4 h-4 text-surface-400" />
+          <div class="space-y-3 mb-6">
+            <div v-for="cat in categorias" :key="cat.id" class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl hover:bg-neutral-100/80 transition-all">
+              <span class="font-medium flex items-center gap-3">
+                <Folder class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 {{ cat.nombre }}
               </span>
-              <button @click="eliminarCategoria(cat.id)" class="text-red-500 hover:text-red-600 p-1 hover:bg-red-50 rounded-lg transition-colors">
-                <Trash2 class="w-4 h-4" />
+              <button @click="eliminarCategoria(cat.id)" class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                <Trash2 class="w-5 h-5" />
               </button>
             </div>
-            <p v-if="categorias.length === 0" class="text-surface-500 text-sm flex items-center gap-2">
-              <AlertCircle class="w-4 h-4" />
+            <p v-if="categorias.length === 0" class="text-neutral-500 text-sm flex items-center gap-2">
+              <AlertCircle class="w-5 h-5" />
               No hay categorías
             </p>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-3">
             <input 
               v-model="nuevaCategoria" 
               type="text" 
               placeholder="Nueva categoría" 
-              class="flex-1 px-4 py-3 border border-surface-200 rounded-xl focus:outline-none focus:ring-2"
-              :style="{ '--tw-ring-color': colorPrincipal }"
+              class="flex-1 px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2"
+              :style="{ '--tw-ring-color': 'rgb(var(--color-primary))' }"
               @keyup.enter="agregarCategoria"
             />
             <button 
               @click="agregarCategoria" 
-              class="px-4 py-3 rounded-xl text-white font-medium transition-all hover:opacity-90 flex items-center gap-2"
-              :style="{ backgroundColor: colorPrincipal }"
+              class="btn flex items-center gap-2 px-5 py-3.5"
             >
-              <Plus class="w-4 h-4" />
+              <Plus class="w-5 h-5" />
               Agregar
             </button>
           </div>
         </div>
 
         <!-- Preferencias -->
-        <div class="bg-white p-6 rounded-2xl border border-surface-100">
-          <h2 class="font-semibold text-surface-900 mb-4 flex items-center gap-2">
-            <Sliders class="w-5 h-5 text-surface-400" />
+        <div class="section-container">
+          <h2 class="font-semibold text-neutral-900 text-lg mb-6 flex items-center gap-3">
+            <Sliders class="w-6 h-6" :style="{ color: 'rgb(var(--color-primary))' }" />
             Preferencias del Sistema
           </h2>
           <div class="space-y-3">
-            <label class="flex items-center justify-between p-3 bg-surface-50 rounded-xl cursor-pointer hover:bg-surface-100 transition-colors">
-              <span class="flex items-center gap-2 text-surface-700">
-                <Receipt class="w-4 h-4" />
+            <label class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl cursor-pointer hover:bg-neutral-100/80 transition-colors">
+              <span class="flex items-center gap-3 text-neutral-700">
+                <Receipt class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 Emitir tickets automáticamente
               </span>
               <input 
                 type="checkbox" 
                 v-model="preferencias.emitir_ticket" 
                 @change="guardarPreferencias" 
-                class="w-5 h-5 rounded"
-                :style="{ accentColor: colorPrincipal }"
+                class="w-6 h-6 rounded"
+                :style="{ accentColor: 'rgb(var(--color-primary))' }"
               />
             </label>
-            <label class="flex items-center justify-between p-3 bg-surface-50 rounded-xl cursor-pointer hover:bg-surface-100 transition-colors">
-              <span class="flex items-center gap-2 text-surface-700">
-                <Volume2 class="w-4 h-4" />
+            <label class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl cursor-pointer hover:bg-neutral-100/80 transition-colors">
+              <span class="flex items-center gap-3 text-neutral-700">
+                <Volume2 class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 Sonido al agregar producto
               </span>
               <input 
                 type="checkbox" 
                 v-model="preferencias.sonido" 
                 @change="guardarPreferencias" 
-                class="w-5 h-5 rounded"
-                :style="{ accentColor: colorPrincipal }"
+                class="w-6 h-6 rounded"
+                :style="{ accentColor: 'rgb(var(--color-primary))' }"
               />
             </label>
-            <label class="flex items-center justify-between p-3 bg-surface-50 rounded-xl cursor-pointer hover:bg-surface-100 transition-colors">
-              <span class="flex items-center gap-2 text-surface-700">
-                <Eye class="w-4 h-4" />
+            <label class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl cursor-pointer hover:bg-neutral-100/80 transition-colors">
+              <span class="flex items-center gap-3 text-neutral-700">
+                <Eye class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 Mostrar stock en terminal
               </span>
               <input 
                 type="checkbox" 
                 v-model="preferencias.mostrar_stock" 
                 @change="guardarPreferencias" 
-                class="w-5 h-5 rounded"
-                :style="{ accentColor: colorPrincipal }"
+                class="w-6 h-6 rounded"
+                :style="{ accentColor: 'rgb(var(--color-primary))' }"
               />
             </label>
-            <label class="flex items-center justify-between p-3 bg-surface-50 rounded-xl cursor-pointer hover:bg-surface-100 transition-colors">
-              <span class="flex items-center gap-2 text-surface-700">
-                <LayoutGrid class="w-4 h-4" />
+            <label class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl cursor-pointer hover:bg-neutral-100/80 transition-colors">
+              <span class="flex items-center gap-3 text-neutral-700">
+                <LayoutGrid class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 Vista por defecto (tarjetas)
               </span>
               <select 
                 v-model="preferencias.vista" 
                 @change="guardarPreferencias" 
-                class="px-3 py-2 border border-surface-200 rounded-lg text-sm"
+                class="px-4 py-2.5 border border-neutral-200 rounded-xl text-sm"
               >
                 <option value="cards">Tarjetas</option>
                 <option value="lista">Lista</option>
               </select>
+            </label>
+          </div>
+        </div>
+
+        <!-- Modo Oscuro -->
+        <div class="section-container">
+          <h2 class="font-semibold text-neutral-900 text-lg mb-6 flex items-center gap-3">
+            <Moon class="w-6 h-6" :style="{ color: 'rgb(var(--color-primary))' }" />
+            Apariencia
+          </h2>
+          <div class="space-y-3">
+            <label class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl cursor-pointer hover:bg-neutral-100/80 transition-colors">
+              <span class="flex items-center gap-3 text-neutral-700">
+                <Moon class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
+                Modo Oscuro
+              </span>
+              <button
+                @click="toggleDarkMode"
+                class="relative w-14 h-8 rounded-full transition-colors"
+                :class="darkMode ? 'bg-emerald-500' : 'bg-neutral-300'"
+              >
+                <span
+                  class="absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform flex items-center justify-center"
+                  :class="darkMode ? 'translate-x-7' : 'translate-x-1'"
+                >
+                  <Moon v-if="darkMode" class="w-3.5 h-3.5 text-neutral-900" />
+                  <Sun v-else class="w-3.5 h-3.5 text-amber-500" />
+                </span>
+              </button>
             </label>
           </div>
         </div>
@@ -236,13 +265,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { applyThemeColor, config, saveConfig } from '@/stores/config'
 import { 
   Settings, Store, Upload, Plus, Check, Save, Building2,
   Palette, MapPin, Phone, Tag, Folder, Trash2, AlertCircle,
-  Sliders, Receipt, Volume2, Eye, LayoutGrid
+  Sliders, Receipt, Volume2, Eye, LayoutGrid, Moon, Sun
 } from 'lucide-vue-next'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -260,6 +289,7 @@ const categorias = ref([])
 const nuevaCategoria = ref('')
 const guardando = ref(false)
 const guardado = ref(false)
+const darkMode = ref(false)
 const DEFAULT_COLOR = '#3b82f6'
 
 const fetchConfiguraciones = async () => {
@@ -374,6 +404,28 @@ const fetchCategorias = async () => {
   }
 }
 
+const toggleDarkMode = async () => {
+  darkMode.value = !darkMode.value
+  localStorage.setItem('dark_mode', darkMode.value)
+  document.documentElement.classList.toggle('dark', darkMode.value)
+  try {
+    await api.put('/configuraciones', { dark_mode: darkMode.value.toString() })
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const applyDarkMode = () => {
+  const saved = localStorage.getItem('dark_mode')
+  if (saved === 'true') {
+    darkMode.value = true
+    document.documentElement.classList.add('dark')
+  } else if (saved === 'false') {
+    darkMode.value = false
+    document.documentElement.classList.remove('dark')
+  }
+}
+
 const api = axios.create({ baseURL: '/api' })
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('pos_token')
@@ -382,6 +434,7 @@ api.interceptors.request.use(config => {
 })
 
 onMounted(() => {
+  applyDarkMode()
   fetchCategorias()
   fetchConfiguraciones()
 })

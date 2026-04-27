@@ -1,78 +1,79 @@
 <template>
-  <div class="h-full flex flex-col">
-    <header class="bg-white/80 backdrop-blur-sm border-b border-surface-200 px-6 py-4">
+  <div class="h-full flex flex-col bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100">
+    <header class="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50 px-8 py-6">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="{ backgroundColor: colorPrincipal + '20' }">
-            <TrendingUp class="w-5 h-5" :style="{ color: colorPrincipal }" />
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" :style="{ backgroundColor: colorPrincipal }">
+            <TrendingUp class="w-6 h-6 text-white" />
           </div>
-          <h1 class="text-xl font-bold text-surface-900">Analytics de Negocio</h1>
+          <div>
+            <h1 class="text-2xl font-bold text-neutral-900 tracking-tight">Analytics de Negocio</h1>
+            <p class="text-sm text-neutral-500">Resumen de ventas y métricas clave</p>
+          </div>
         </div>
-        <button @click="loadAnalytics" class="p-2 hover:bg-surface-100 rounded-lg transition-colors">
-          <RotateCcw class="w-5 h-5 text-surface-400" />
+        <button @click="loadAnalytics" class="p-3 hover:bg-neutral-100/80 rounded-xl transition-all duration-300 hover-lift shadow-soft">
+          <RotateCcw class="w-5 h-5 text-neutral-500" />
         </button>
       </div>
     </header>
 
-    <div class="flex-1 overflow-auto p-6">
-      <!-- 1. Resumen de Métricas Rápidas -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white p-5 rounded-2xl border border-surface-100 hover:shadow-md transition-shadow">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-              <DollarSign class="w-5 h-5 text-green-600" />
+    <div class="flex-1 overflow-auto p-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
+        <div class="card-elevated p-6 group hover-lift">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center shadow-inner">
+              <DollarSign class="w-5 h-5 text-emerald-600" />
             </div>
-            <span class="text-sm text-surface-500">Ventas Hoy</span>
+            <span class="text-sm text-neutral-500 font-medium">Ventas Hoy</span>
           </div>
-          <p class="text-2xl font-bold text-surface-900">${{ ventasHoy.toFixed(2) }}</p>
+          <p class="text-2xl font-bold text-neutral-900">${{ Number(ventasHoy).toFixed(2) }}</p>
         </div>
         
-        <div class="bg-white p-5 rounded-2xl border border-surface-100 hover:shadow-md transition-shadow">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+        <div class="card-elevated p-6 group hover-lift">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center shadow-inner">
               <Receipt class="w-5 h-5 text-blue-600" />
             </div>
-            <span class="text-sm text-surface-500">Tickets Hoy</span>
+            <span class="text-sm text-neutral-500 font-medium">Tickets Hoy</span>
           </div>
-          <p class="text-2xl font-bold text-surface-900">{{ ticketsHoy }}</p>
+          <p class="text-2xl font-bold text-neutral-900">{{ ticketsHoy }}</p>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-surface-100 hover:shadow-md transition-shadow">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-              <Package class="w-5 h-5 text-purple-600" />
+        <div class="card-elevated p-6 group hover-lift">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center shadow-inner">
+              <Package class="w-5 h-5 text-violet-600" />
             </div>
-            <span class="text-sm text-surface-500">Productos Vendidos</span>
+            <span class="text-sm text-neutral-500 font-medium">Productos Vendidos</span>
           </div>
-          <p class="text-2xl font-bold text-surface-900">{{ productosVendidos }}</p>
+          <p class="text-2xl font-bold text-neutral-900">{{ productosVendidos }}</p>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-surface-100 hover:shadow-md transition-shadow">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <TrendingUp class="w-5 h-5 text-emerald-600" />
+        <div class="card-elevated p-6 group hover-lift">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center shadow-inner">
+              <TrendingUp class="w-5 h-5 text-amber-600" />
             </div>
-            <span class="text-sm text-surface-500">Ganancia Neta</span>
+            <span class="text-sm text-neutral-500 font-medium">Ganancia Neta</span>
           </div>
-          <p class="text-2xl font-bold text-emerald-600">${{ gananciaNeta.toFixed(2) }}</p>
+          <p class="text-2xl font-bold text-emerald-600">${{ Number(gananciaNeta).toFixed(2) }}</p>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-surface-100 hover:shadow-md transition-shadow">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+        <div class="card-elevated p-6 group hover-lift">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center shadow-inner">
               <Calculator class="w-5 h-5 text-orange-600" />
             </div>
-            <span class="text-sm text-surface-500">Margen</span>
+            <span class="text-sm text-neutral-500 font-medium">Margen</span>
           </div>
-          <p class="text-2xl font-bold text-surface-900">{{ margenPorcentaje }}%</p>
+          <p class="text-2xl font-bold text-neutral-900">{{ Number(margenPorcentaje).toFixed(2) }}%</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Gráfico de Tendencia (Línea) -->
-        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-surface-100">
-          <h3 class="font-semibold text-surface-900 mb-4 flex items-center gap-2">
-            <BarChart3 class="w-5 h-5 text-surface-400" />
+        <div class="lg:col-span-2 section-container">
+          <h3 class="font-semibold text-neutral-900 mb-6 flex items-center gap-3 text-lg">
+            <BarChart3 class="w-6 h-6 text-neutral-400" />
             Tendencia de Ventas (Últimos 30 días)
           </h3>
           <div class="h-80 w-full">
@@ -80,72 +81,68 @@
           </div>
         </div>
 
-        <!-- Distribución por Método de Pago -->
-        <div class="bg-white p-6 rounded-2xl border border-surface-100">
-          <h3 class="font-semibold text-//surface-900 mb-4 flex items-center gap-2">
-            <CreditCard class="w-5 h-5 text-surface-400" />
-            Métodos de Pago
-          </h3>
+        <div class="section-container">
+           <h3 class="font-semibold text-neutral-900 mb-6 flex items-center gap-3 text-lg">
+             <CreditCard class="w-6 h-6 text-neutral-400" />
+             Métodos de Pago
+           </h3>
           <div class="h-64 w-full flex items-center justify-center">
             <canvas id="paymentChart"></canvas>
           </div>
-          <div class="mt-4 space-y-2">
-            <div v-for="metodo in metodosPago" :key="metodo.metodo" class="flex items-center justify-between p-2 text-xs bg-surface-50 rounded-lg">
-              <span class="text-surface-600 capitalize">{{ metodo.metodo }}</span>
-              <span class="font-bold">${{ Number(metodo.total).toFixed(2) }}</span>
+          <div class="mt-6 space-y-3">
+            <div v-for="metodo in metodosPago" :key="metodo.metodo" class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl hover:bg-neutral-100/80 transition-all">
+              <span class="text-neutral-600 font-medium capitalize">{{ metodo.metodo }}</span>
+              <span class="font-bold text-neutral-900">${{ Number(metodo.total).toFixed(2) }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Top Productos -->
-        <div class="bg-white p-6 rounded-2xl border border-surface-100">
-          <h3 class="font-semibold text-surface-900 mb-4 flex items-center gap-2">
-            <Award class="w-5 h-5 text-surface-400" />
+        <div class="section-container">
+          <h3 class="font-semibold text-neutral-900 mb-6 flex items-center gap-3 text-lg">
+            <Award class="w-6 h-6 text-neutral-400" />
             Top Productos
           </h3>
           <div class="space-y-3">
-            <div v-for="(prod, index) in topProductos" :key="index" class="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-              <span class="w-6 h-6 rounded-full bg-surface-200 flex items-center justify-center text-xs font-bold text-surface-500">
+            <div v-for="(prod, index) in topProductos" :key="index" class="flex items-center gap-4 p-4 bg-neutral-50/80 rounded-xl hover:bg-neutral-100/80 transition-all hover-lift">
+              <span class="w-8 h-8 rounded-xl bg-neutral-200 flex items-center justify-center text-sm font-bold text-neutral-600">
                 {{ index + 1 }}
               </span>
               <div class="flex-1">
-                <p class="text-sm font-medium text-surface-900 truncate">{{ prod.nombre }}</p>
-                <p class="text-xs text-surface-500">{{ prod.cantidad }} unidades</p>
+                <p class="text-sm font-semibold text-neutral-900 truncate">{{ prod.nombre }}</p>
+                <p class="text-xs text-neutral-500">{{ prod.cantidad }} unidades</p>
               </div>
-              <span class="font-bold text-sm">${{ Number(prod.total).toFixed(2) }}</span>
+              <span class="font-bold text-neutral-900">${{ Number(prod.total).toFixed(2) }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Ventas por Categoría -->
-        <div class="bg-white p-6 rounded-2xl border border-surface-100">
-          <h3 class="font-semibold text-//surface-900 mb-4 flex items-center gap-2">
-            <Tag class="w-5 h-5 text-surface-400" />
-            Por Categoría
-          </h3>
+        <div class="section-container">
+           <h3 class="font-semibold text-neutral-900 mb-6 flex items-center gap-3 text-lg">
+             <Tag class="w-6 h-6 text-neutral-400" />
+             Por Categoría
+           </h3>
           <div class="h-64 w-full flex items-center justify-center">
             <canvas id="categoryChart"></canvas>
           </div>
         </div>
 
-        <!-- Resumen Adicional -->
-        <div class="bg-white p-6 rounded-2xl border border-surface-100">
-          <h3 class="font-semibold text-surface-900 mb-4 flex items-center gap-2">
-            <Calculator class="w-5 h-5 text-surface-400" />
+        <div class="section-container">
+          <h3 class="font-semibold text-neutral-900 mb-6 flex items-center gap-3 text-lg">
+            <Calculator class="w-6 h-6 text-neutral-400" />
             Métricas de Eficiencia
           </h3>
           <div class="space-y-4">
-            <div class="flex justify-between items-center p-3 bg-surface-50 rounded-xl">
-              <span class="text-sm text-surface-600">Ticket Promedio</span>
-              <span class="font-bold">${{ ticketPromedio.toFixed(2) }}</span>
+            <div class="flex justify-between items-center p-4 bg-neutral-50/80 rounded-xl hover:bg-neutral-100/80 transition-all">
+              <span class="text-neutral-600 font-medium">Ticket Promedio</span>
+              <span class="font-bold text-neutral-900">${{ Number(ticketPromedio).toFixed(2) }}</span>
             </div>
-            <div class="flex justify-between items-center p-3 bg-surface-50 rounded-xl">
-              <span class="text-sm text-surface-600">Costo Total Productos</span>
-              <span class="font-bold text-red-500">${{ costoTotal.toFixed(2) }}</span>
+            <div class="flex justify-between items-center p-4 bg-neutral-50/80 rounded-xl hover:bg-neutral-100/80 transition-all">
+              <span class="text-neutral-600 font-medium">Costo Total Productos</span>
+              <span class="font-bold text-red-500">${{ Number(costoTotal).toFixed(2) }}</span>
             </div>
-            <div class="flex justify-between items-center p-3 bg-surface-50 rounded-xl">
-              <span class="text-sm text-surface-600">Ingreso Bruto Hoy</span>
-              <span class="font-bold text-green-600">${{ ventasHoy.toFixed(2) }}</span>
+            <div class="flex justify-between items-center p-4 bg-neutral-50/80 rounded-xl hover:bg-neutral-100/80 transition-all">
+              <span class="text-neutral-600 font-medium">Ingreso Bruto Hoy</span>
+              <span class="font-bold text-emerald-600">${{ Number(ventasHoy).toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -177,18 +174,16 @@ const categoriasVentas = ref([])
 const dailyStats = ref([])
 
 const ticketPromedio = computed(() => ticketsHoy.value > 0 ? ventasHoy.value / ticketsHoy.value : 0)
-const margenPorcentaje = computed(() => ventasHoy.value > 0 ? (gananciaNeta.value / ventasHoy.value) * 100 : 0)
+const margenPorcentaje = computed(() => ventasHoy.value > 0 ? Math.round((gananciaNeta.value / ventasHoy.value) * 100 * 100) / 100 : 0)
 
 const loadAnalytics = async () => {
   try {
     const token = localStorage.getItem('pos_token')
     
-    // Cargar Dashboard
     const { data: dash } = await axios.get('/api/ventas/dashboard', {
       headers: { Authorization: `Bearer ${token}` }
     })
     
-    // Cargar Stats Diarios
     const { data: stats } = await axios.get('/api/ventas/stats/daily', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -212,6 +207,10 @@ const loadAnalytics = async () => {
 }
 
 const initCharts = () => {
+  const primaryColor = colorPrincipal.value
+  const textColor = '#6b7280'
+  const gridColor = '#e5e7eb'
+  
   // 1. Gráfico de Ventas Diarias (Línea)
   new Chart(document.getElementById('salesChart'), {
     type: 'line',
@@ -220,17 +219,22 @@ const initCharts = () => {
       datasets: [{
         label: 'Ventas Diarias',
         data: dailyStats.value.map(d => d.total),
-        borderColor: colorPrincipal.value,
-        backgroundColor: colorPrincipal.value + '20',
-        fill: true,
-        tension: 0.4
+        borderColor: primaryColor,
+        backgroundColor: 'transparent',
+        fill: false,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: primaryColor
       }]
     },
     options: { 
       responsive: true, 
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
+      scales: { 
+        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } }, 
+        x: { grid: { display: false }, ticks: { color: textColor } } 
+      }
     }
   })
 
@@ -241,10 +245,17 @@ const initCharts = () => {
       labels: metodosPago.value.map(m => m.metodo),
       datasets: [{
         data: metodosPago.value.map(m => m.total),
-        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+        backgroundColor: [primaryColor, '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6'],
+        borderWidth: 3,
+        borderColor: 'white'
       }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } },
+      cutout: '60%'
+    }
   })
 
   // 3. Gráfico de Categorías (Barras Horizontales)
@@ -255,14 +266,19 @@ const initCharts = () => {
       datasets: [{
         label: 'Total Ventas',
         data: categoriasVentas.value.map(c => c.total),
-        backgroundColor: colorPrincipal.value
+        backgroundColor: primaryColor,
+        borderRadius: 6
       }]
     },
     options: { 
       indexAxis: 'y', 
       responsive: true, 
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } }
+      plugins: { legend: { display: false } },
+      scales: { 
+        x: { grid: { color: gridColor }, ticks: { color: textColor } }, 
+        y: { grid: { display: false }, ticks: { color: textColor } }
+      }
     }
   })
 }

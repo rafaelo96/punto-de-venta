@@ -29,13 +29,13 @@ export const config = reactive({
 
 const convertHexToRgb = (hex) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}` : '14 165 233'
+  return result ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}` : '59 130 246'
 }
 
 export const applyThemeColor = (color) => {
   const rgb = convertHexToRgb(color)
-  document.documentElement.style.setProperty('--color-primary', color)
-  document.documentElement.style.setProperty('--color-primary-150', `${rgb.split(' ').map((c, i) => Math.max(0, parseInt(c) + 15)).join(' ')}`)
+  document.documentElement.style.setProperty('--color-primary', rgb)
+  document.documentElement.style.setProperty('--color-primary-150', `${rgb.split(' ').map((c) => Math.max(0, parseInt(c) + 15)).join(' ')}`)
   document.documentElement.style.setProperty('--color-primary-500', rgb)
   
   const shades = [
