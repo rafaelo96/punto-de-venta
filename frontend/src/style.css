@@ -35,33 +35,36 @@
 }
 
 .dark {
-  /* Dark mode - richer, warmer dark tones */
-  --color-white: 30 32 36; /* same as neutral-50 */
+  /* Dark mode - High Contrast, Deep Black Theme */
+  --color-white: 15 15 15; 
   --color-black: 255 255 255;
-  --neutral-50: 30 32 36;
-  --neutral-100: 38 40 46;
-  --neutral-200: 48 52 60;
-  --neutral-300: 68 74 84;
-  --neutral-400: 90 98 110;
-  --neutral-500: 115 125 140;
-  --neutral-600: 145 158 175;
-  --neutral-700: 180 195 210;
-  --neutral-800: 210 220 235;
-  --neutral-900: 240 245 255;
   
-  /* Dark surface colors - slight blue tint */
-  --surface-50: 22 24 30;
-  --surface-100: 30 34 42;
-  --surface-200: 42 48 58;
-  --surface-300: 55 62 75;
+  /* Neutral scale inverted for dark mode */
+  --neutral-50: 15 15 15;   /* Deepest */
+  --neutral-100: 25 25 25;
+  --neutral-200: 35 35 35;  /* Subtle borders */
+  --neutral-300: 55 55 55;
+  --neutral-400: 90 90 90;
+  --neutral-500: 130 130 130; /* Muted text */
+  --neutral-600: 170 170 170;
+  --neutral-700: 200 200 200;
+  --neutral-800: 230 230 230;
+  --neutral-900: 250 250 250; /* Primary text */
   
-  --color-primary: 96 165 250;
+  /* Surface colors - Removing greys, using deep blacks/near-blacks */
+  --surface-50: 10 10 10;   /* Base Background: Pure Deep Black */
+  --surface-100: 18 18 18;  /* Surface: Cards, Sections */
+  --surface-200: 28 28 28;  /* Elevated: Inputs, Hover states */
+  --surface-300: 38 38 38;  /* High Elevation */
   
-  /* Dark mode shadows - lighter */
-  --shadow-depth-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-depth-2: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-depth-3: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-depth-4: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  /* Primary color adjusted for better contrast on dark background */
+  --color-primary: 96 165 250; 
+  
+  /* Shadows: deeper and more subtle in dark mode */
+  --shadow-depth-1: 0 1px 2px 0 rgba(0, 0, 0, 0.8);
+  --shadow-depth-2: 0 4px 6px -1px rgba(0, 0, 0, 0.9), 0 2px 4px -1px rgba(0, 0, 0, 0.8);
+  --shadow-depth-3: 0 10px 15px -3px rgba(0, 0, 0, 1), 0 4px 6px -2px rgba(0, 0, 0, 0.9);
+  --shadow-depth-4: 0 20px 25px -5px rgba(0, 0, 0, 1), 0 10px 10px -5px rgba(0, 0, 0, 0.9);
 }
 
 * {
@@ -171,8 +174,9 @@ a {
 
 .dark .card-elevated {
   background: rgb(var(--surface-100));
-  border: 1px solid rgb(var(--neutral-700));
+  border: 1px solid rgb(var(--neutral-200));
 }
+
 
 .card-elevated:hover {
   box-shadow: var(--shadow-depth-4);
@@ -192,9 +196,10 @@ a {
 
 .dark .section-container {
   background: rgb(var(--surface-100));
-  border: 1px solid rgb(var(--neutral-700));
-  box-shadow: var(--shadow-depth-2);
+  border: 1px solid rgb(var(--neutral-200));
+  box-shadow: var(--shadow-depth-1);
 }
+
 
 .section-container:hover {
   transform: translateY(-2px);

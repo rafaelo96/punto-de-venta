@@ -1,13 +1,13 @@
 <template>
-  <div class="h-full flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100">
-    <header class="px-8 py-6 bg-white/80 backdrop-blur-xl border-b border-neutral-200/50">
+  <div class="h-full flex flex-col bg-[rgb(var(--surface-50))] transition-colors duration-300">
+    <header class="px-8 py-6 glass border-b border-[rgb(var(--neutral-200))] transition-colors duration-300">
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" :style="{ backgroundColor: colorPrincipal }">
           <FileText class="w-6 h-6 text-white" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-neutral-900 tracking-tight">Reportes</h1>
-          <p class="text-sm text-neutral-500">Análisis por período de tiempo</p>
+          <h1 class="text-2xl font-bold text-[rgb(var(--neutral-900))] tracking-tight">Reportes</h1>
+          <p class="text-sm text-[rgb(var(--neutral-500))]">Análisis por período de tiempo</p>
         </div>
       </div>
     </header>
@@ -18,19 +18,19 @@
         <div class="section-container">
           <div class="flex flex-wrap items-end gap-4">
             <div>
-              <label class="block text-sm font-semibold mb-2 text-neutral-700">Fecha Inicio</label>
+              <label class="block text-sm font-semibold mb-2 text-[rgb(var(--neutral-700))]">Fecha Inicio</label>
               <input
                 type="date"
                 v-model="fechaInicio"
-                class="px-4 py-3 rounded-xl border bg-neutral-50 border-neutral-200"
+                class="px-4 py-3 rounded-xl border bg-[rgb(var(--surface-100))] border-[rgb(var(--neutral-200))] text-[rgb(var(--neutral-900))]"
               />
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-2 text-neutral-700">Fecha Fin</label>
+              <label class="block text-sm font-semibold mb-2 text-[rgb(var(--neutral-700))]">Fecha Fin</label>
               <input
                 type="date"
                 v-model="fechaFin"
-                class="px-4 py-3 rounded-xl border bg-neutral-50 border-neutral-200"
+                class="px-4 py-3 rounded-xl border bg-[rgb(var(--surface-100))] border-[rgb(var(--neutral-200))] text-[rgb(var(--neutral-900))]"
               />
             </div>
             <button @click="cargarReportes" class="btn flex items-center gap-2 px-5 py-3">
@@ -54,25 +54,25 @@
         <template v-else-if="reportes">
           <!-- Resumen -->
           <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div class="section-container text-center">
-              <p class="text-sm mb-1 text-neutral-500">Total Ventas</p>
+            <div class="card-elevated p-6 text-center hover-lift">
+              <p class="text-sm mb-1 text-[rgb(var(--neutral-500))]">Total Ventas</p>
               <p class="text-2xl font-bold" :style="{ color: colorPrincipal }">${{ formatNumber(resumen.total_ventas) }}</p>
             </div>
-            <div class="section-container text-center">
-              <p class="text-sm mb-1 text-neutral-500">Tickets</p>
-              <p class="text-2xl font-bold text-neutral-900">{{ resumen.num_tickets }}</p>
+            <div class="card-elevated p-6 text-center hover-lift">
+              <p class="text-sm mb-1 text-[rgb(var(--neutral-500))]">Tickets</p>
+              <p class="text-2xl font-bold text-[rgb(var(--neutral-900))]">{{ resumen.num_tickets }}</p>
             </div>
-            <div class="section-container text-center">
-              <p class="text-sm mb-1 text-neutral-500">Productos</p>
-              <p class="text-2xl font-bold text-neutral-900">{{ resumen.productos_vendidos }}</p>
+            <div class="card-elevated p-6 text-center hover-lift">
+              <p class="text-sm mb-1 text-[rgb(var(--neutral-500))]">Productos</p>
+              <p class="text-2xl font-bold text-[rgb(var(--neutral-900))]">{{ resumen.productos_vendidos }}</p>
             </div>
-            <div class="section-container text-center">
-              <p class="text-sm mb-1 text-neutral-500">Ganancia</p>
+            <div class="card-elevated p-6 text-center hover-lift">
+              <p class="text-sm mb-1 text-[rgb(var(--neutral-500))]">Ganancia</p>
               <p class="text-2xl font-bold text-emerald-600">${{ formatNumber(resumen.ganancia_neta) }}</p>
             </div>
-            <div class="section-container text-center">
-              <p class="text-sm mb-1 text-neutral-500">Ticket Promedio</p>
-              <p class="text-2xl font-bold text-neutral-900">${{ formatNumber(ticketPromedio) }}</p>
+            <div class="card-elevated p-6 text-center hover-lift">
+              <p class="text-sm mb-1 text-[rgb(var(--neutral-500))]">Ticket Promedio</p>
+              <p class="text-2xl font-bold text-[rgb(var(--neutral-900))]">${{ formatNumber(ticketPromedio) }}</p>
             </div>
           </div>
 
@@ -80,7 +80,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Ventas Diarias -->
             <div class="section-container">
-              <h3 class="font-semibold mb-4 text-neutral-900">Ventas Diarias</h3>
+              <h3 class="font-semibold mb-4 text-[rgb(var(--neutral-900))]">Ventas Diarias</h3>
               <div class="h-64">
                 <Bar :data="chartData.daily" :options="chartOptions" />
               </div>
@@ -88,7 +88,7 @@
 
             <!-- Métodos de Pago -->
             <div class="section-container">
-              <h3 class="font-semibold mb-4 text-neutral-900">Métodos de Pago</h3>
+              <h3 class="font-semibold mb-4 text-[rgb(var(--neutral-900))]">Métodos de Pago</h3>
               <div class="h-64">
                 <Doughnut :data="chartData.metodos" :options="chartOptionsDoughnut" />
               </div>
@@ -96,7 +96,7 @@
 
             <!-- Categorías -->
             <div class="section-container">
-              <h3 class="font-semibold mb-4 text-neutral-900">Por Categoría</h3>
+              <h3 class="font-semibold mb-4 text-[rgb(var(--neutral-900))]">Por Categoría</h3>
               <div class="h-64">
                 <Pie :data="chartData.categorias" :options="chartOptionsDoughnut" />
               </div>
@@ -104,16 +104,16 @@
 
             <!-- Top Productos -->
             <div class="section-container">
-              <h3 class="font-semibold mb-4 text-neutral-900">Top Productos</h3>
+              <h3 class="font-semibold mb-4 text-[rgb(var(--neutral-900))]">Top Productos</h3>
               <div class="space-y-3 max-h-64 overflow-auto">
-                <div v-for="(prod, i) in top_productos" :key="i" class="flex items-center justify-between p-3 rounded-xl bg-neutral-50">
+                <div v-for="(prod, i) in top_productos" :key="i" class="flex items-center justify-between p-4 bg-neutral-50/80 rounded-xl hover:bg-neutral-100/80 transition-all hover-lift">
                   <div class="flex items-center gap-3">
                     <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" :style="{ backgroundColor: colorPrincipal, color: 'white' }">{{ i + 1 }}</span>
-                    <span class="text-neutral-900">{{ prod.nombre }}</span>
+                    <span class="text-[rgb(var(--neutral-900))]">{{ prod.nombre }}</span>
                   </div>
                   <div class="text-right">
                     <p class="font-semibold" :style="{ color: colorPrincipal }">${{ formatNumber(prod.total) }}</p>
-                    <p class="text-xs text-neutral-500">{{ prod.cantidad }} uds</p>
+                    <p class="text-xs text-[rgb(var(--neutral-500))]">{{ prod.cantidad }} uds</p>
                   </div>
                 </div>
               </div>
@@ -127,14 +127,14 @@
               Productos con Stock Bajo
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div v-for="prod in stock_bajo" :key="prod.id" class="p-4 rounded-xl flex items-center justify-between bg-neutral-50">
+              <div v-for="prod in stock_bajo" :key="prod.id" class="p-4 rounded-xl flex items-center justify-between bg-neutral-50/80 hover:bg-neutral-100/80 transition-all">
                 <div>
-                  <p class="font-medium text-neutral-900">{{ prod.nombre }}</p>
-                  <p class="text-xs text-neutral-500">Mín: {{ prod.stock_minimo }}</p>
+                  <p class="font-medium text-[rgb(var(--neutral-900))]">{{ prod.nombre }}</p>
+                  <p class="text-xs text-[rgb(var(--neutral-500))]">Mín: {{ prod.stock_minimo }}</p>
                 </div>
                 <div class="text-right">
                   <p class="font-bold text-red-500">{{ prod.stock }}</p>
-                  <p class="text-xs text-neutral-500">disponibles</p>
+                  <p class="text-xs text-[rgb(var(--neutral-500))]">disponibles</p>
                 </div>
               </div>
             </div>
@@ -143,8 +143,8 @@
 
         <!-- Sin resultados -->
         <div v-else class="text-center py-12">
-          <FileText class="w-16 h-16 mx-auto mb-4 text-neutral-300" />
-          <p class="text-neutral-500">Selecciona un rango de fechas para ver el reporte</p>
+          <FileText class="w-16 h-16 mx-auto mb-4 text-[rgb(var(--neutral-300))]" />
+          <p class="text-[rgb(var(--neutral-500))]">Selecciona un rango de fechas para ver el reporte</p>
         </div>
       </div>
     </div>
@@ -291,12 +291,3 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.section-container {
-  @apply p-6 rounded-2xl;
-  @apply bg-white/80 backdrop-blur-xl border border-neutral-200/50;
-}
-.dark .section-container {
-  @apply bg-neutral-800/80 border-neutral-700;
-}
-</style>

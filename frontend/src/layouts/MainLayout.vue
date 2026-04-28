@@ -1,8 +1,8 @@
 <template>
-  <div class="flex flex-col h-screen overflow-hidden transition-colors duration-300" :class="isDark ? 'bg-[#1e222a]' : 'bg-gradient-to-br from-[#fafafa] to-[#f5f5f5]'">
+  <div class="flex flex-col h-screen overflow-hidden transition-colors duration-300 bg-[rgb(var(--surface-50))]">
     <!-- Mobile Header -->
-    <header class="lg:hidden fixed top-0 left-0 right-0 h-14 z-40 flex items-center justify-between px-4 transition-colors duration-300" :class="isDark ? 'bg-[#262a36] border-[#2d3342]' : 'bg-white/90 backdrop-blur-sm border-neutral-200/50'">
-      <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg transition-all hover-lift" :class="isDark ? 'text-neutral-400 hover:bg-[#2d3342]' : 'text-neutral-600 hover:bg-neutral-100/50'">
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-14 z-40 flex items-center justify-between px-4 transition-colors duration-300 glass border-b border-[rgb(var(--neutral-200))]">
+      <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg transition-all hover-lift text-[rgb(var(--neutral-600))] hover:bg-[rgb(var(--surface-200))]">
         <Menu class="w-6 h-6" />
       </button>
       <div class="flex items-center gap-3">
@@ -13,7 +13,7 @@
           <img v-if="negocioLogo" :src="negocioLogo" class="w-full h-full object-contain" />
           <ShoppingCart v-else class="w-5 h-5 text-white" />
         </div>
-        <span class="font-semibold text-base tracking-wider" :class="isDark ? 'text-white' : 'text-neutral-900'">{{ negocioNombre }}</span>
+        <span class="font-semibold text-base tracking-wider text-[rgb(var(--neutral-900))]">{{ negocioNombre }}</span>
       </div>
       <button @click="logout" class="p-2.5 rounded-lg transition-all duration-300 hover-lift" 
         :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }"
@@ -31,8 +31,8 @@
     
     <!-- Sidebar -->
     <aside 
-      class="lg:hidden fixed left-0 top-14 bottom-0 w-64 flex flex-col z-50 transition-transform transition-colors duration-300"
-      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', isDark ? 'bg-[#262a36] border-r-[#2d3342]' : 'bg-white/95 backdrop-blur-sm border-r-neutral-200/50']"
+      class="lg:hidden fixed left-0 top-14 bottom-0 w-64 flex flex-col z-50 transition-transform transition-colors duration-300 glass border-r border-[rgb(var(--neutral-200))]"
+      :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full']"
     >
       <nav class="flex-1 p-4 space-y-2">
         <router-link
@@ -41,7 +41,7 @@
           :to="item.path"
           @click="sidebarOpen = false"
           class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover-lift"
-          :class="isActive(item.path) ? 'shadow-lg' : (isDark ? 'text-neutral-400 hover:bg-neutral-700 hover:text-white' : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900')"
+          :class="isActive(item.path) ? 'shadow-lg' : 'text-[rgb(var(--neutral-600))] hover:bg-[rgb(var(--surface-200))] hover:text-[rgb(var(--neutral-900))]'"
           :style="isActive(item.path) ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
         >
           <div class="w-10 h-10 rounded-xl flex items-center justify-center">
@@ -53,9 +53,9 @@
     </aside>
     
     <!-- Desktop Sidebar (fixed) -->
-    <aside class="hidden lg:block fixed left-0 top-0 bottom-0 w-20 xl:w-64 flex flex-col z-30 transition-colors duration-300" :class="isDark ? 'bg-[#262a36] border-r-[#2d3342]' : 'bg-white/90 backdrop-blur-sm border-r-neutral-200/50'">
+    <aside class="hidden lg:block fixed left-0 top-0 bottom-0 w-20 xl:w-64 flex flex-col z-30 transition-colors duration-300 glass border-r border-[rgb(var(--neutral-200))]">
       <!-- Logo -->
-      <div class="p-4 border-b transition-colors duration-300" :class="isDark ? 'border-[#2d3342]' : 'border-neutral-200/50'">
+      <div class="p-4 border-b border-[rgb(var(--neutral-200))] transition-colors duration-300">
         <div class="flex items-center justify-center xl:justify-start gap-4">
           <div 
             class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl transition-transform duration-300 group-hover:scale-105"
@@ -64,7 +64,7 @@
             <img v-if="negocioLogo" :src="negocioLogo + '?t=' + Date.now()" class="w-full h-full object-contain" />
             <ShoppingCart v-else class="w-6 h-6 text-white" />
           </div>
-          <span class="hidden xl:block text-xl font-bold tracking-wider transition-colors duration-300" :class="isDark ? 'text-white' : 'text-neutral-900'">{{ negocioNombre }}</span>
+          <span class="hidden xl:block text-xl font-bold tracking-wider transition-colors duration-300 text-[rgb(var(--neutral-900))]">{{ negocioNombre }}</span>
         </div>
       </div>
       
@@ -75,12 +75,12 @@
           :key="item.path"
           :to="item.path"
           class="group flex items-center gap-4 px-3 xl:px-4 py-3 rounded-xl transition-all duration-300 hover-lift"
-          :class="isActive(item.path) ? 'shadow-lg' : (isDark ? 'text-neutral-400 hover:bg-[#2d3342] hover:text-white' : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900')"
+          :class="isActive(item.path) ? 'shadow-lg' : 'text-[rgb(var(--neutral-500))] hover:bg-[rgb(var(--surface-200))] hover:text-[rgb(var(--neutral-900))]'"
           :style="isActive(item.path) ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
         >
           <div 
             class="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300"
-            :class="isActive(item.path) ? 'bg-white/10' : (isDark ? 'bg-[#2d3342] group-hover:bg-[#353b4a]' : 'bg-neutral-50 group-hover:bg-neutral-100')"
+            :class="isActive(item.path) ? 'bg-white/10' : 'bg-[rgb(var(--surface-200))] group-hover:bg-[rgb(var(--surface-300))]'"
           >
             <component :is="item.icon" class="w-6 h-6" :class="isActive(item.path) ? 'text-white' : ''" />
           </div>
@@ -89,7 +89,7 @@
       </nav>
       
       <!-- Usuario -->
-      <div class="p-3 xl:p-4 border-t transition-colors duration-300" :class="isDark ? 'border-[#2d3342]' : 'border-neutral-200/50'">
+      <div class="p-3 xl:p-4 border-t border-[rgb(var(--neutral-200))] transition-colors duration-300">
         <div class="flex items-center justify-center xl:justify-start gap-4">
           <div 
             class="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-xl"
@@ -98,8 +98,8 @@
             {{ userInitials }}
           </div>
           <div class="hidden xl:flex flex-col min-w-0">
-            <p class="text-sm font-medium truncate" :class="isDark ? 'text-white' : 'text-neutral-900'">{{ userName }}</p>
-            <p class="text-xs capitalize" :class="isDark ? 'text-neutral-400' : 'text-neutral-500'">{{ userRole }}</p>
+            <p class="text-sm font-medium truncate text-[rgb(var(--neutral-900))]">{{ userName }}</p>
+            <p class="text-xs capitalize text-[rgb(var(--neutral-500))]">{{ userRole }}</p>
           </div>
           <button @click="logout" class="p-2.5 rounded-lg transition-all duration-300 hover-lift" 
           :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }"

@@ -133,147 +133,166 @@
     </div>
 
     <!-- Panel Derecho: Carrito -->
-    <div class="w-full lg:w-[380px] xl:w-[420px] bg-white shadow-depth-4 border-t lg:border-t-0 lg:border-l border-neutral-200/50 flex flex-col h-full lg:h-auto z-20">
-      <div class="p-5 border-b border-neutral-200/50 flex-shrink-0 bg-white/95 glass sticky top-0 z-10">
+    <div class="w-full lg:w-[380px] xl:w-[420px] bg-white/80 glass shadow-[0_0_40px_rgba(0,0,0,0.05)] border-t lg:border-t-0 lg:border-l border-neutral-200/50 flex flex-col h-full lg:h-auto z-20 relative">
+      <div class="p-5 border-b border-neutral-200/50 flex-shrink-0 bg-white/60 backdrop-blur-xl sticky top-0 z-10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" :style="{ backgroundColor: `rgb(var(--color-primary))` }">
-              <ShoppingCart class="w-6 h-6 text-white" />
+            <div class="relative">
+              <div class="absolute inset-0 blur-md opacity-40 rounded-2xl" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg relative bg-gradient-to-br from-white/20 to-transparent" :style="{ backgroundColor: `rgb(var(--color-primary))` }">
+                <ShoppingCart class="w-6 h-6 text-white drop-shadow-md" />
+              </div>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-neutral-900 leading-tight">Carrito</h2>
-              <p class="text-sm text-neutral-500 font-medium">{{ totalItems }} artículo{{ totalItems !== 1 ? 's' : '' }}</p>
+              <h2 class="text-xl font-bold text-neutral-900 leading-tight tracking-tight">Carrito</h2>
+              <p class="text-sm text-neutral-500 font-medium flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: totalItems > 0 ? `rgb(var(--color-primary))` : '#d4d4d8' }"></span>
+                {{ totalItems }} artículo{{ totalItems !== 1 ? 's' : '' }}
+              </p>
             </div>
           </div>
           <button
             v-if="!estaVacio"
             @click="limpiarCarrito"
-            class="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            class="p-2.5 bg-red-500 text-white hover:bg-red-600 shadow-sm hover:shadow-md rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
             title="Limpiar carrito"
           >
-            <Trash2 class="w-5 h-5" />
+            <Trash2 class="w-5 h-5 group-hover:rotate-12 transition-transform" />
           </button>
         </div>
       </div>
 
-      <div class="flex-1 overflow-auto p-5">
+      <div class="flex-1 overflow-auto p-5 scrollbar-hide">
         <div v-if="estaVacio" class="flex flex-col items-center justify-center h-full text-neutral-400 py-12 animate-fade-in">
-          <div class="w-24 h-24 bg-neutral-50 rounded-full flex items-center justify-center mb-4">
-            <ShoppingCart class="w-12 h-12 text-neutral-200" />
+          <div class="relative mb-6">
+            <div class="absolute inset-0 bg-neutral-200 blur-xl opacity-50 rounded-full animate-pulse"></div>
+            <div class="w-24 h-24 bg-white shadow-soft rounded-full flex items-center justify-center relative">
+              <ShoppingCart class="w-10 h-10 text-neutral-300" />
+            </div>
           </div>
-          <p class="text-lg font-medium text-neutral-500">Carrito vacío</p>
-          <p class="text-sm text-neutral-400 mt-2 text-center">Selecciona productos para <br> agregarlos aquí</p>
+          <p class="text-xl font-bold text-neutral-600 mb-2">Carrito vacío</p>
+          <p class="text-sm text-neutral-400 text-center max-w-[200px] leading-relaxed">Explora nuestros productos y agrégalos aquí para comenzar.</p>
         </div>
 
-        <div v-else class="space-y-3">
+        <div v-else class="space-y-4">
           <div
             v-for="item in items"
             :key="item.id"
-            class="flex items-center gap-3 p-4 bg-neutral-50/80 rounded-2xl hover:bg-neutral-100/80 transition-all duration-300 hover-lift group"
+            class="flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm border border-neutral-100/80 shadow-sm rounded-2xl hover:shadow-md hover:border-neutral-200/60 transition-all duration-300 hover-lift group relative overflow-hidden"
           >
-            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-soft flex-shrink-0">
-               <Package class="w-5 h-5 text-neutral-400" />
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-l-2xl" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
+            
+            <div class="w-14 h-14 bg-neutral-50/80 rounded-xl flex items-center justify-center shadow-inner flex-shrink-0 relative overflow-hidden">
+               <img v-if="item.imagen" :src="item.imagen" class="w-full h-full object-cover" @error="item.imagen = null" />
+               <Package v-else class="w-6 h-6 text-neutral-300 group-hover:text-neutral-400 transition-colors" />
             </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="font-semibold text-neutral-800 text-sm truncate" :title="item.nombre">
+            
+            <div class="flex-1 min-w-0 py-1">
+              <h4 class="font-bold text-neutral-800 text-sm truncate" :title="item.nombre">
                 {{ item.nombre }}
               </h4>
-              <p class="text-xs font-medium text-neutral-500 mt-0.5">${{ Number(item.precio).toFixed(2) }} c/u</p>
+              <p class="text-xs font-medium text-neutral-500 mt-1">${{ Number(item.precio).toFixed(2) }} <span class="text-neutral-400 font-normal">c/u</span></p>
             </div>
-            <div class="flex items-center gap-2 bg-white p-1.5 rounded-xl shadow-soft">
-              <button
-                @click="actualizarCantidad(item.id, item.cantidad - 1)"
-                class="w-8 h-8 bg-neutral-50 rounded-lg flex items-center justify-center hover:bg-neutral-100 transition-colors"
-                :style="{ color: `rgb(var(--color-primary))` }"
-              >
-                <Minus class="w-4 h-4" />
-              </button>
-              <span class="w-8 text-center font-bold text-neutral-700">{{ item.cantidad }}</span>
-              <button
-                @click="actualizarCantidad(item.id, item.cantidad + 1)"
-                class="w-8 h-8 bg-neutral-50 rounded-lg flex items-center justify-center hover:bg-neutral-100 transition-colors"
-                :style="{ color: `rgb(var(--color-primary))` }"
-              >
-                <Plus class="w-4 h-4" />
-              </button>
+            
+            <div class="flex flex-col items-end gap-3">
+              <p class="font-bold text-neutral-900 text-base leading-none">${{ (Number(item.precio) * item.cantidad).toFixed(2) }}</p>
+              
+              <div class="flex items-center gap-1.5 bg-neutral-50/80 border border-neutral-100 p-1 rounded-xl shadow-inner">
+                <button
+                  @click="actualizarCantidad(item.id, item.cantidad - 1)"
+                  class="p-2 bg-white shadow-sm rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-all active:scale-95"
+                  :style="{ color: colorPrincipal }"
+                >
+                  <Minus :color="colorPrincipal" class="w-3.5 h-3.5" />
+                </button>
+                <span class="w-6 text-center font-bold text-neutral-700 text-sm">{{ item.cantidad }}</span>
+                <button
+                  @click="actualizarCantidad(item.id, item.cantidad + 1)"
+                  class="p-2 bg-white shadow-sm rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-all active:scale-95"
+                  :style="{ color: colorPrincipal }"
+                >
+                  <Plus :color="colorPrincipal" class="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-            <div class="text-right min-w-[80px] flex flex-col items-end gap-2">
-              <p class="font-bold text-neutral-900">${{ (Number(item.precio) * item.cantidad).toFixed(2) }}</p>
-              <button @click.stop="eliminarDelCarrito(item.id)" class="text-xs font-medium text-red-500 hover:text-red-600 transition-colors flex items-center gap-1">
-                <X class="w-3 h-3" /> Quitar
-              </button>
-            </div>
+            
+            <!-- Botón flotante para eliminar (visible en hover o siempre en móviles) -->
+            <button @click.stop="eliminarDelCarrito(item.id)" class="absolute p-4 -top-2 -right-2 bg-white text-red-500 border border-neutral-100 shadow-md rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-600 opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
+              <X color="#ef4444" class="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Footer del Carrito -->
-      <div v-if="!estaVacio" class="p-5 border-t border-neutral-200/50 bg-neutral-50/50 space-y-5">
-        <div class="space-y-3">
-          <div class="flex justify-between text-sm font-medium">
+      <div v-if="!estaVacio" class="p-6 border-t border-neutral-200/50 bg-white/80 backdrop-blur-xl relative z-10 before:absolute before:inset-0 before:bg-gradient-to-t before:from-white before:to-transparent before:-z-10 before:-top-6 before:h-6">
+        <div class="space-y-3.5 mb-6">
+          <div class="flex justify-between text-sm font-medium items-center">
             <span class="text-neutral-500 flex items-center gap-2">
-              <Receipt class="w-4 h-4" :style="{ color: 'rgb(var(--color-primary))' }" />
               Subtotal
             </span>
-            <span class="text-neutral-900">${{ Number(subtotal).toFixed(2) }}</span>
+            <span class="text-neutral-900 font-semibold">${{ Number(subtotal).toFixed(2) }}</span>
           </div>
           
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium text-neutral-500 flex items-center gap-2">
-              <Percent class="w-4 h-4" :style="{ color: 'rgb(var(--color-primary))' }" />
+          <div class="flex items-center justify-between group">
+            <span class="text-sm font-medium text-neutral-500 flex items-center gap-2 group-hover:text-neutral-700 transition-colors">
               Descuento %
             </span>
-            <input
-              v-model.number="descuentoInput"
-              type="number"
-              min="0"
-              max="100"
-              placeholder="0"
-              class="w-24 px-4 py-2 border border-neutral-200 bg-white rounded-xl text-right text-sm font-semibold focus:ring-2 focus:outline-none transition-all"
-              :style="{ '--tw-ring-color': `rgb(var(--color-primary))` }"
-              @change="aplicarDescuento(descuentoInput)"
-            />
+            <div class="relative">
+              <input
+                v-model.number="descuentoInput"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="0"
+                class="w-20 pl-3 pr-8 py-2 border border-neutral-200 bg-neutral-50/50 rounded-xl text-right text-sm font-bold focus:ring-2 focus:bg-white focus:outline-none transition-all shadow-inner"
+                :style="{ '--tw-ring-color': `rgb(var(--color-primary))` }"
+                @change="aplicarDescuento(descuentoInput)"
+              />
+              <Percent class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
+            </div>
           </div>
           
-          <div v-if="descuentoGlobal > 0" class="flex justify-between text-sm font-medium text-emerald-600 animate-fade-in">
+          <div v-if="descuentoGlobal > 0" class="flex justify-between text-sm font-medium text-emerald-600 animate-fade-in bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/50">
             <span class="flex items-center gap-2">
               <Tag class="w-4 h-4" />
               Descuento ({{ descuentoGlobal }}%)
             </span>
-            <span>-${{ Number(montoDescuento).toFixed(2) }}</span>
+            <span class="font-bold">-${{ Number(montoDescuento).toFixed(2) }}</span>
           </div>
         </div>
         
-        <div class="flex justify-between items-end pt-4 border-t border-neutral-200">
-          <span class="text-lg font-bold text-neutral-900 flex items-center gap-2">
-            <CreditCard class="w-5 h-5" />
-            Total a Cobrar
-          </span>
-          <span class="text-3xl font-black" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(total).toFixed(2) }}</span>
+        <div class="flex justify-between items-end pt-5 border-t border-neutral-200/60 mb-6">
+          <div class="flex flex-col">
+            <span class="text-sm font-medium text-neutral-500 mb-1">Total a cobrar</span>
+            <span class="text-4xl font-black tracking-tight" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(total).toFixed(2) }}</span>
+          </div>
         </div>
 
         <!-- Métodos de Pago -->
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-3 gap-3 mb-6">
           <button
             v-for="metodo in metodosPago"
             :key="metodo.id"
             @click="metodoPago = metodo.id"
-            class="py-3.5 rounded-xl text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2"
-            :class="metodoPago === metodo.id ? 'shadow-lg scale-[1.02]' : 'bg-white border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50'"
-            :style="metodoPago === metodo.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', borderColor: 'rgb(var(--color-primary))', boxShadow: 'var(--shadow-depth-3)' } : {}"
+            class="py-3 px-2 rounded-2xl text-xs font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2 relative overflow-hidden group"
+            :class="metodoPago === metodo.id ? 'shadow-md scale-[1.02]' : 'bg-white border-neutral-100/80 shadow-sm text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50'"
+            :style="metodoPago === metodo.id ? { backgroundColor: 'white', color: 'rgb(var(--color-primary))', borderColor: 'rgb(var(--color-primary))' } : {}"
           >
-            <component :is="metodo.icon" class="w-5 h-5" />
+            <div v-if="metodoPago === metodo.id" class="absolute inset-0 opacity-10" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
+            <component :is="metodo.icon" class="w-5 h-5 transition-transform group-hover:scale-110" />
             {{ metodo.nombre }}
           </button>
         </div>
 
         <button
           @click="finalizarVenta"
-          class="w-full py-5 font-bold rounded-2xl transition-all duration-300 hover-lift flex items-center justify-center gap-3 text-lg shadow-xl"
-          :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' }"
+          class="w-full py-4.5 font-bold rounded-2xl transition-all duration-300 hover-lift flex items-center justify-center gap-3 text-lg shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)] relative overflow-hidden group"
+          :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }"
         >
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
           <DollarSign class="w-6 h-6" />
-          Cobrar e Imprimir
+          <span>Cobrar Venta</span>
         </button>
       </div>
     </div>
@@ -406,7 +425,7 @@ import { config, fetchConfig, saveConfig } from '@/stores/config'
 import { 
   Search, Package, Tag, LayoutGrid, List, ShoppingCart, Trash2, Plus, Minus, 
   Calculator, DollarSign, CreditCard, Banknote, ScanLine, X, Loader2, Archive,
-  ArrowLeftRight, Send
+  ArrowLeftRight, Send, Percent, Receipt, Wallet, Coins, RotateCcw, Check
 } from 'lucide-vue-next'
 
 const productosStore = useProductosStore()
@@ -480,9 +499,22 @@ const handleSearch = () => {
 const agregarAlCarrito = (producto) => {
   ventasStore.agregarProducto(producto)
   if (config.sonido) {
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodHLn3E+OyNtWnRvcbqmeUgxLih1oNzFqnRKNShh4NfMmWonYyYvRdyzam9jKC4uaujLp3xQPkE3i7+1bWIiIiIzjre1a2ElJSUntLJxYSsrLCSxr3FsIiMjIi2xr3FtISUlJbKxbWIoKSopsK5wYSYmJiuvr3BiJiYlLbCvbyUnJiSusG9fISEhIK2vr28iIiAuu7txISEhIK2vr28iIiAusK9vISEhIK2wr28iISAtrq9vISEgLbCvb28iISAtra9vISEgLq6vbyIiIC2tr28iISMqrq9vICIjKK6ub2IiIiqtrW8iIiIqraxuYiIiKqutbGIiIiqqrG1iISMqq6xsYSISKqqsbWIiIiqqq2sbWIiIiqrrG1iIiKqq6xtYiIiqausbWIB')
-    audio.volume = 0.3
-    audio.play().catch(() => {})
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+    const oscillator = audioCtx.createOscillator()
+    const gainNode = audioCtx.createGain()
+    
+    oscillator.connect(gainNode)
+    gainNode.connect(audioCtx.destination)
+    
+    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1)
+    
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15)
+    
+    oscillator.type = 'sine'
+    oscillator.start()
+    oscillator.stop(audioCtx.currentTime + 0.15)
   }
 }
 

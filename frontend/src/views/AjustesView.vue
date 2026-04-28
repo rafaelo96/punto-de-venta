@@ -75,7 +75,7 @@
                     <input 
                       type="text" 
                       v-model="negocio.color" 
-                      class="w-32 px-4 py-3 border border-neutral-200 rounded-xl font-mono text-sm uppercase"
+                      class="w-32 px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl font-mono text-sm uppercase"
                     />
                     <button 
                       @click="aplicarColor" 
@@ -219,11 +219,11 @@
                 <LayoutGrid class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 Vista por defecto (tarjetas)
               </span>
-              <select 
-                v-model="preferencias.vista" 
-                @change="guardarPreferencias" 
-                class="px-4 py-2.5 border border-neutral-200 rounded-xl text-sm"
-              >
+               <select 
+                 v-model="preferencias.vista" 
+                 @change="guardarPreferencias" 
+                 class="px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm"
+               >
                 <option value="cards">Tarjetas</option>
                 <option value="lista">Lista</option>
               </select>
@@ -243,19 +243,19 @@
                 <Moon class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 Modo Oscuro
               </span>
-              <button
-                @click="toggleDarkMode"
-                class="relative w-14 h-8 rounded-full transition-colors"
-                :class="darkMode ? 'bg-emerald-500' : 'bg-neutral-300'"
-              >
-                <span
-                  class="absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform flex items-center justify-center"
-                  :class="darkMode ? 'translate-x-7' : 'translate-x-1'"
-                >
-                  <Moon v-if="darkMode" class="w-3.5 h-3.5 text-neutral-900" />
-                  <Sun v-else class="w-3.5 h-3.5 text-amber-500" />
-                </span>
-              </button>
+               <button
+                 @click="toggleDarkMode"
+                 class="relative w-14 h-8 rounded-full transition-colors"
+                 :class="darkMode ? 'bg-emerald-500' : 'bg-neutral-300'"
+               >
+                 <span
+                   class="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 flex items-center justify-center"
+                   :class="darkMode ? 'translate-x-6' : 'translate-x-0'"
+                 >
+                   <Moon v-if="darkMode" class="w-3.5 h-3.5 text-neutral-900" />
+                   <Sun v-else class="w-3.5 h-3.5 text-amber-500" />
+                 </span>
+               </button>
             </label>
           </div>
         </div>
