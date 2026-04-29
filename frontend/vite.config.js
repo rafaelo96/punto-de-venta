@@ -16,7 +16,7 @@ export default defineConfig({
         theme_color: '#3b82f6',
         background_color: '#ffffff',
         display: 'standalone',
-        orientation: 'portrait',
+        orientation: 'any',
         scope: '/',
         start_url: '/',
         icons: [
@@ -40,6 +40,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Cache all API requests for offline use
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -69,19 +70,40 @@ export default defineConfig({
               }
             }
           },
+          // API caching - NetworkFirst with offline fallback
           {
-            urlPattern: /\/api\/.*/i,
+            urlPattern: /\/api\/productos.*/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'api-cache',
+              cacheName: 'api-products-cache',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7  // 7 days
               },
-              networkTimeoutSeconds: 10,
+              networkTimeoutSeconds: 5,
               cacheableResponse: {
                 statuses: [0, 200]
               }
+            }
+          },
+          {
+            urlPattern: /\/api\/categorias.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-categories-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7
+              },
+              networkTimeoutSeconds: 5
+            }
+          },
+          {
+            urlPattern: /\/api\/ventas.*/i,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'api-sales-cache',
+              networkTimeoutSeconds: 10
             }
           },
           {
@@ -90,15 +112,16 @@ export default defineConfig({
             options: {
               cacheName: 'uploads-cache',
               expiration: {
-                maxEntries: 100,
+                maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
               }
             }
           }
         ]
+      },
+      // Inject custom service worker for offline sync
+      injectRegisterOptions: {
+        // Custom strategies can be added here
       }
     })
   ],

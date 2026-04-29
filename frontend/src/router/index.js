@@ -29,14 +29,10 @@ const routes = [
         component: () => import('@/views/InventarioView.vue')
       },
       {
-        path: 'analytics',
-        name: 'analytics',
-        component: () => import('@/views/AnalyticsView.vue')
-      },
-      {
-        path: 'reportes',
-        name: 'reportes',
-        component: () => import('@/views/ReportesView.vue')
+        path: 'analisis',
+        name: 'analisis',
+        component: () => import('@/views/AnalisisView.vue'),
+        meta: { title: 'Análisis' }
       },
       {
         path: 'historial',
@@ -47,7 +43,16 @@ const routes = [
         path: 'ajustes',
         name: 'ajustes',
         component: () => import('@/views/AjustesView.vue')
-      }
+      },
+      // Redirect old routes
+      {
+        path: 'analytics',
+        redirect: '/analisis'
+      },
+      {
+        path: 'reportes',
+        redirect: '/analisis'
+      },
     ]
   }
 ]

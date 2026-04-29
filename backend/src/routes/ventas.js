@@ -402,6 +402,14 @@ router.get('/dashboard', async (req, res) => {
       GROUP BY metodo_pago
     `, [req.negocioId, hoy])
 
+    const stockBajo = await query(`
+      SELECT id, nombre, stock, stock_minimo
+      FROM productos
+      WHERE negocio_id = $1 AND stock <= stock_minimo AND activo = true
+      ORDER BY stock ASC
+      LIMIT 10
+    `, [req.negocioId])
+    
     res.json({
       resumen: {
         total: parseFloat(general.rows[0].total_ventas),
@@ -412,7 +420,8 @@ router.get('/dashboard', async (req, res) => {
       },
       top_productos: topProductos.rows,
       categorias: porCategoria.rows,
-      metodos: porMetodo.rows
+      metodos: porMetodo.rows,
+      stock_bajo: stockBajo.rows
     })
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener analytics', error: error.message })
@@ -471,7 +480,12 @@ router.get('/ticket/:id', async (req, res) => {
       res.send(Buffer.from(escpos))
     } else {
       // HTML optimizado para impresión térmica (80mm)
-      const logoUrl = v.negocio_logo ? `${req.protocol}://${req.get('host')}/uploads${v.negocio_logo}` : ''
+      // Handle logo path - it might already include /uploads
+      let logoUrl = ''
+      if (v.negocio_logo) {
+        // If path already starts with /uploads, use as-is; otherwise prepend /uploads
+        logoUrl = v.negocio_logo.startsWith('/uploads') ? v.negocio_logo : `/uploads${v.negocio_logo}`
+      }
       
       let html = `<!DOCTYPE html>
 <html>
@@ -657,5 +671,61 @@ function generateESCPOS(venta, items) {
 function stringToBytes(str) {
   return Array.from(Buffer.from(str, 'utf8'))
 }
+
+// Export reports endpoint
+router.get('/reportes/export', async (req, res) => {
+  try {
+    const { fecha_inicio, fecha_fin, format } = req.query
+    
+    if (!fecha_inicio || !fecha_fin) {
+      return res.status(400).json({ message: 'Se requieren fecha_inicio y fecha_fin' })
+    }
+    
+    // Get report data
+    const reportes = await query(`
+      SELECT 
+        v.id, v.folio, v.total, v.metodo_pago, v.created_at,
+        u.nombre as usuario_nombre
+      FROM ventas v
+      LEFT JOIN usuarios u ON v.usuario_id = u.id
+      WHERE v.negocio_id = $1 
+        AND DATE(v.created_at) BETWEEN $2 AND $3
+        AND v.status = 'completada'
+      ORDER BY v.created_at DESC
+    `, [req.negocioId, fecha_inicio, fecha_fin])
+    
+    if (format === 'excel') {
+      // Generate Excel file
+      const XLSX = require('xlsx')
+      const ws = XLSX.utils.json_to_sheet(reportes.rows.map(r => ({
+        'Folio': r.folio,
+        'Fecha': new Date(r.created_at).toLocaleString('es-MX'),
+        'Total': parseFloat(r.total),
+        'Método': r.metodo_pago,
+        'Usuario': r.usuario_nombre
+      })))
+      
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Ventas')
+      
+      const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      res.setHeader('Content-Disposition', `attachment; filename="reporte_${fecha_inicio}_${fecha_fin}.xlsx"`)
+      res.send(buf)
+      
+    } else if (format === 'pdf') {
+      // Generate PDF (using puppeteer or similar)
+      res.status(501).json({ message: 'PDF export coming soon' })
+      
+    } else {
+      res.status(400).json({ message: 'Formato no válido. Use: excel o pdf' })
+    }
+    
+  } catch (error) {
+    console.error('Export error:', error)
+    res.status(500).json({ message: 'Error al exportar', error: error.message })
+  }
+})
 
 export default router

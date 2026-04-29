@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import { pool, initDB } from './db.js'
+import { initRedis } from './utils/redis.js'
 import authRoutes from './routes/auth.js'
 import productosRoutes from './routes/productos.js'
 import categoriasRoutes from './routes/categorias.js'
@@ -135,6 +136,14 @@ process.on('SIGTERM', () => {
 
 app.listen(PORT, async () => {
   await initDB()
+  
+  // Initialize Redis (optional - will continue without if fails)
+  try {
+    await initRedis()
+  } catch (err) {
+    console.warn('Redis not available - running without cache')
+  }
+  
   console.log(`Server running on port ${PORT}`)
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
 })

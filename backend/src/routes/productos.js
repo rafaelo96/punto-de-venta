@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { authenticate } from '../middleware/auth.js'
+import { cacheMiddleware, invalidateCache } from '../utils/redis.js'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
@@ -75,10 +76,10 @@ router.post('/:id/imagen', uploadProducto.single('imagen'), async (req, res) => 
   }
 })
 
-router.get('/', async (req, res) => {
+router.get('/', cacheMiddleware(300), async (req, res) => {
   try {
     const result = await query(`
-      SELECT
+      SELECT 
         p.id, p.nombre, p.codigo_barras, p.categoria_id, p.stock, p.stock_minimo,
         p.activo, p.imagen, p.precio_compra, p.precio_venta,
         c.nombre as categoria_nombre
@@ -121,7 +122,7 @@ router.put('/:id/imagen', async (req, res) => {
   }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', cacheMiddleware(600), async (req, res) => {
   try {
     if (!validator.isInt(req.params.id)) {
       return res.status(400).json({ message: 'ID inválido' })
@@ -182,6 +183,9 @@ router.post('/', async (req, res) => {
       RETURNING *
     `, [req.negocioId, nombre.trim(), codigo_barras?.trim() || null, categoria_id || null, precio_compra, precio_venta, stock || 0, stock_minimo || 5])
 
+    // Invalidate products cache
+    await invalidateCache(`api:/api/productos*`)
+    
     res.json(result.rows[0])
   } catch (error) {
     if (error.code === '23505') {
@@ -242,6 +246,9 @@ router.put('/:id', async (req, res) => {
       RETURNING *
     `, [nombre?.trim(), codigo_barras?.trim() || null, categoria_id || null, precio_compra, precio_venta, stock, stock_minimo, activo, imagen, req.params.id, req.negocioId])
 
+    // Invalidate cache
+    await invalidateCache(`api:/api/productos*`)
+    
     res.json(result.rows[0])
   } catch (error) {
     if (error.code === '23505') {
@@ -260,6 +267,8 @@ router.delete('/:id', async (req, res) => {
       'UPDATE productos SET activo = false WHERE id = $1 AND negocio_id = $2',
       [req.params.id, req.negocioId]
     )
+    // Invalidar cache
+    await invalidateCache(`api:/api/productos*`)
     res.json({ message: 'Producto eliminado' })
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar producto', error: error.message })
@@ -304,10 +313,12 @@ router.patch('/:id/stock', async (req, res) => {
       RETURNING *
     `, [newStock, req.params.id, req.negocioId])
 
+    // Invalidar cache
+    await invalidateCache(`api:/api/productos*`)
+    
     const cat = await query('SELECT nombre FROM categorias WHERE id = $1', [result.rows[0].categoria_id])
-    result.rows[0].categoria_nombre = cat.rows[0]?.nombre || null
-
-    res.json(result.rows[0])
+    
+    res.json({ ...result.rows[0], categoria_nombre: cat.rows[0]?.nombre })
   } catch (error) {
     res.status(500).json({ message: 'Error al ajustar stock', error: error.message })
   }

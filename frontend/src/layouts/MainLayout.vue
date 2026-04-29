@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-col h-screen overflow-hidden transition-colors duration-300 bg-[rgb(var(--surface-50))]">
+    <!-- PWA Install Prompt -->
+    <PWAInstallPrompt />
+    
     <!-- Mobile Header -->
     <header class="lg:hidden fixed top-0 left-0 right-0 h-14 z-40 flex items-center justify-between px-4 transition-colors duration-300 glass border-b border-[rgb(var(--neutral-200))]">
       <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg transition-all hover-lift text-[rgb(var(--neutral-600))] hover:bg-[rgb(var(--surface-200))]">
@@ -153,8 +156,7 @@ const menuItems = [
   { name: 'Venta', path: '/', icon: ShoppingCart },
   { name: 'Productos', path: '/productos', icon: Package },
   { name: 'Inventario', path: '/inventario', icon: Warehouse },
-  { name: 'Analytics', path: '/analytics', icon: TrendingUp },
-  { name: 'Reportes', path: '/reportes', icon: FileText },
+  { name: 'Centro de Inteligencia', path: '/analisis', icon: BarChart3 },
   { name: 'Historial', path: '/historial', icon: History },
   { name: 'Ajustes', path: '/ajustes', icon: Wrench }
 ]
@@ -163,6 +165,8 @@ const isActive = (path) => {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
 }
+
+import PWAInstallPrompt from '@/components/PWAInstallPrompt.vue'
 
 const userName = computed(() => authStore.user?.nombre || 'Usuario')
 const userRole = computed(() => authStore.user?.rol || 'usuario')

@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
 import api from '@/api'
+import { 
+  cacheProducts, getCachedProducts, cacheCategories, getCachedCategories,
+  isOnline, syncPendingSales
+} from '@/utils/offlineDB'
 
 export const useProductosStore = defineStore('productos', {
   state: () => ({
@@ -8,7 +12,8 @@ export const useProductosStore = defineStore('productos', {
     loading: false,
     error: null,
     searchQuery: '',
-    categoriaSeleccionada: 'todos'
+    categoriaSeleccionada: 'todos',
+    isOnline: true
   }),
 
   getters: {
@@ -48,11 +53,26 @@ export const useProductosStore = defineStore('productos', {
   actions: {
     async fetchProductos() {
       this.loading = true
+      this.isOnline = isOnline()
+      
       try {
         const { data } = await api.get('/productos')
         this.productos = data
+        // Cache products offline
+        if (this.isOnline) {
+          await cacheProducts(data)
+        }
       } catch (error) {
         this.error = error.response?.data?.message
+        // If offline, try to load from cache
+        if (!this.isOnline || error.code === 'NETWORK_ERROR') {
+          console.log('Offline: loading products from cache')
+          const cached = await getCachedProducts()
+          if (cached && cached.length > 0) {
+            this.productos = cached
+            this.error = null
+          }
+        }
       } finally {
         this.loading = false
       }
@@ -62,8 +82,21 @@ export const useProductosStore = defineStore('productos', {
       try {
         const { data } = await api.get('/categorias')
         this.categorias = data
+        // Cache categories offline
+        if (this.isOnline) {
+          await cacheCategories(data)
+        }
       } catch (error) {
         this.error = error.response?.data?.message
+        // If offline, try to load from cache
+        if (!this.isOnline || error.code === 'NETWORK_ERROR') {
+          console.log('Offline: loading categories from cache')
+          const cached = await getCachedCategories()
+          if (cached && cached.length > 0) {
+            this.categorias = cached
+            this.error = null
+          }
+        }
       }
     },
     

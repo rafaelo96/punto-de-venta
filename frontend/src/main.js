@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import './style.css'
 import { applyThemeColor } from './stores/config'
+import { initDB } from './utils/offlineDB'
 
 const app = createApp(App)
 app.use(createPinia())
@@ -19,6 +20,28 @@ if (savedDark === 'true') {
   document.documentElement.classList.add('dark')
 }
 
+// Initialize IndexedDB for offline mode
+initDB().then(() => {
+  console.log('Offline DB ready')
+}).catch(err => {
+  console.error('Failed to init offline DB:', err)
+})
+
+// Online/Offline detection
+window.addEventListener('online', () => {
+  console.log('Back online - syncing pending data...')
+  // Trigger sync of pending sales
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SYNC_PENDING_SALES'
+    })
+  }
+})
+
+window.addEventListener('offline', () => {
+  console.log('Gone offline - switching to offline mode')
+})
+
 if ('serviceWorker' in navigator) {
   import('virtual:pwa-register').then(({ registerSW }) => {
     registerSW({
@@ -32,6 +55,14 @@ if ('serviceWorker' in navigator) {
       },
       onRegistered(registration) {
         console.log('SW registrado:', registration)
+        // Listen for messages from SW
+        if (registration && registration.active) {
+          navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data.type === 'SYNC_COMPLETE') {
+              console.log('Sync completed:', event.data.result)
+            }
+          })
+        }
       },
       onRegisterError(error) {
         console.error('Error al registrar SW:', error)
