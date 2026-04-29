@@ -60,13 +60,14 @@ export const initDB = async () => {
         codigo_barras VARCHAR(100),
         categoria_id INTEGER REFERENCES categorias(id),
         precio_compra DECIMAL(10, 2) DEFAULT 0,
-        precio_venta DECIMAL(10, 2) DEFAULT 0,
-        stock INTEGER DEFAULT 0,
-        stock_minimo INTEGER DEFAULT 5,
-        activo BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+precio_venta DECIMAL(10, 2) DEFAULT 0,
+  descuento_porcentaje DECIMAL(5, 2) DEFAULT 0,
+  stock INTEGER DEFAULT 0,
+  stock_minimo INTEGER DEFAULT 5,
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
       CREATE TABLE IF NOT EXISTS ventas (
         id SERIAL PRIMARY KEY,
@@ -82,24 +83,44 @@ export const initDB = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS ventas_items (
-        id SERIAL PRIMARY KEY,
-        venta_id INTEGER REFERENCES ventas(id) ON DELETE CASCADE,
-        producto_id INTEGER REFERENCES productos(id),
-        cantidad INTEGER NOT NULL,
-        precio_unitario DECIMAL(10, 2) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+CREATE TABLE IF NOT EXISTS ventas_items (
+  id SERIAL PRIMARY KEY,
+  venta_id INTEGER REFERENCES ventas(id) ON DELETE CASCADE,
+  producto_id INTEGER REFERENCES productos(id),
+  cantidad INTEGER NOT NULL,
+  precio_unitario DECIMAL(10, 2) NOT NULL,
+  descuento_porcentaje DECIMAL(5, 2) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-      CREATE TABLE IF NOT EXISTS configuraciones (
-        id SERIAL PRIMARY KEY,
-        negocio_id INTEGER REFERENCES negocios(id) ON DELETE CASCADE,
-        clave VARCHAR(100) NOT NULL,
-        valor TEXT NOT NULL,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(negocio_id, clave)
-      );
-    `)
+CREATE TABLE IF NOT EXISTS configuraciones (
+  id SERIAL PRIMARY KEY,
+  negocio_id INTEGER REFERENCES negocios(id) ON DELETE CASCADE,
+  clave VARCHAR(100) NOT NULL,
+  valor TEXT NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(negocio_id, clave)
+);
+
+CREATE TABLE IF NOT EXISTS ventas_canceladas (
+  id SERIAL PRIMARY KEY,
+  venta_original_id INTEGER NOT NULL,
+  negocio_id INTEGER REFERENCES negocios(id) ON DELETE CASCADE,
+  usuario_id INTEGER REFERENCES usuarios(id),
+  motivo TEXT,
+  total DECIMAL(10, 2) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_productos_negocio ON productos(negocio_id);
+CREATE INDEX IF NOT EXISTS idx_productos_codigo_barras ON productos(codigo_barras);
+CREATE INDEX IF NOT EXISTS idx_productos_activo ON productos(activo);
+CREATE INDEX IF NOT EXISTS idx_ventas_negocio ON ventas(negocio_id);
+CREATE INDEX IF NOT EXISTS idx_ventas_fecha ON ventas(created_at);
+CREATE INDEX IF NOT EXISTS idx_ventas_status ON ventas(status);
+CREATE INDEX IF NOT EXISTS idx_categorias_negocio ON categorias(negocio_id);
+CREATE INDEX IF NOT EXISTS idx_ventas_items_venta ON ventas_items(venta_id);
+`)
 
     const existingNegocio = await client.query('SELECT COUNT(*) FROM negocios')
     if (parseInt(existingNegocio.rows[0].count) === 0) {

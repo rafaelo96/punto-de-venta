@@ -1,29 +1,30 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'pos_secret_key_2024'
+const JWT_SECRET = process.env.JWT_SECRET
 
 export const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization
   const token = authHeader?.replace('Bearer ', '')
-  
-  console.log(`[Auth] Header: ${authHeader ? 'Presente' : 'Ausente'}`)
-  console.log(`[Auth] Token: ${token ? 'Presente' : 'Ausente'}`)
 
   if (!token) {
     return res.status(401).json({ message: 'No autorizado: Token ausente' })
   }
-  
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET)
-    if (!decoded.negocio_id) {
-      return res.status(401).json({ message: 'Token inválido: Falta negocio_id' })
+    if (!decoded.negocio_id || !decoded.id) {
+      return res.status(401).json({ message: 'Token inválido: Falta información' })
     }
     req.negocioId = decoded.negocio_id
     req.userId = decoded.id
+    req.userEmail = decoded.email
+    req.userRol = decoded.rol || 'usuario'
     next()
   } catch (error) {
-    console.error(`[Auth] Error verificando token: ${error.message}`)
-    res.status(401).json({ message: 'Token inválido o expirado' })
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expirado' })
+    }
+    res.status(401).json({ message: 'Token inválido' })
   }
 }
 
@@ -34,9 +35,17 @@ export const optionalAuth = async (req, res, next) => {
       const decoded = jwt.verify(token, JWT_SECRET)
       req.negocioId = decoded.negocio_id
       req.userId = decoded.id
+      req.userRol = decoded.rol || 'usuario'
     } catch (e) {
-      // Ignore
+      // Ignore invalid token for optional auth
     }
+  }
+  next()
+}
+
+export const requireAdmin = (req, res, next) => {
+  if (req.userRol !== 'admin') {
+    return res.status(403).json({ message: 'Acceso denegado: se requiere rol admin' })
   }
   next()
 }
