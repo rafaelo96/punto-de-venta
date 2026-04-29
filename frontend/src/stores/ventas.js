@@ -87,7 +87,7 @@ export const useVentasStore = defineStore('ventas', {
     async registrarVenta(datosPago) {
       this.loading = true
       try {
-        const itemsParaEnviar = datosPago.items || this.items.map(item => ({
+        const itemsParaEnviar = datosPago.items ? datosPago.items : this.items.map(item => ({
           producto_id: item.id,
           cantidad: item.cantidad,
           precio_unitario: item.precio * (1 - (item.descuento || 0) / 100),

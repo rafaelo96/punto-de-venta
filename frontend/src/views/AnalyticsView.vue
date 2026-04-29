@@ -206,10 +206,18 @@ const loadAnalytics = async () => {
   }
 }
 
+const getChartColors = () => {
+  const isDark = document.documentElement.classList.contains('dark')
+  return {
+    textColor: isDark ? 'rgb(145, 156, 172)' : 'rgb(107, 114, 128)',
+    gridColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    borderColor: isDark ? 'rgb(30, 30, 30)' : 'white'
+  }
+}
+
 const initCharts = () => {
   const primaryColor = colorPrincipal.value
-  const textColor = '#6b7280'
-  const gridColor = '#e5e7eb'
+  const colors = getChartColors()
   
   // 1. Gráfico de Ventas Diarias (Línea)
   new Chart(document.getElementById('salesChart'), {
@@ -232,8 +240,8 @@ const initCharts = () => {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: { 
-        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } }, 
-        x: { grid: { display: false }, ticks: { color: textColor } } 
+        y: { beginAtZero: true, grid: { color: colors.gridColor }, ticks: { color: colors.textColor } }, 
+        x: { grid: { display: false }, ticks: { color: colors.textColor } } 
       }
     }
   })
@@ -247,7 +255,7 @@ const initCharts = () => {
         data: metodosPago.value.map(m => m.total),
         backgroundColor: [primaryColor, '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6'],
         borderWidth: 3,
-        borderColor: 'white'
+        borderColor: colors.borderColor
       }]
     },
     options: { 
@@ -276,8 +284,8 @@ const initCharts = () => {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: { 
-        x: { grid: { color: gridColor }, ticks: { color: textColor } }, 
-        y: { grid: { display: false }, ticks: { color: textColor } }
+        x: { grid: { color: colors.gridColor }, ticks: { color: colors.textColor } }, 
+        y: { grid: { display: false }, ticks: { color: colors.textColor } }
       }
     }
   })

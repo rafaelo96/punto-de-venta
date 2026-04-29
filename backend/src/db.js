@@ -93,6 +93,15 @@ CREATE TABLE IF NOT EXISTS ventas_items (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Migración: agregar columna descuento_porcentaje si no existe
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ventas_items' AND column_name='descuento_porcentaje') THEN
+    ALTER TABLE ventas_items ADD COLUMN descuento_porcentaje DECIMAL(5, 2) DEFAULT 0;
+  END IF;
+END
+$$;
+
 CREATE TABLE IF NOT EXISTS configuraciones (
   id SERIAL PRIMARY KEY,
   negocio_id INTEGER REFERENCES negocios(id) ON DELETE CASCADE,

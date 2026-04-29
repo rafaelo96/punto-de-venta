@@ -13,6 +13,19 @@ api.interceptors.request.use(config => {
   return config
 })
 
+export const presetColors = [
+  { name: 'Azul', value: '#3b82f6', rgb: '59 130 246' },
+  { name: 'Violeta', value: '#8b5cf6', rgb: '139 92 246' },
+  { name: 'Esmeralda', value: '#10b981', rgb: '16 185 129' },
+  { name: 'Rojo', value: '#ef4444', rgb: '239 68 68' },
+  { name: 'Naranja', value: '#f97316', rgb: '249 115 22' },
+  { name: 'Rosa', value: '#ec4899', rgb: '236 72 153' },
+  { name: 'Cian', value: '#06b6d4', rgb: '6 182 212' },
+  { name: 'Ámbar', value: '#f59e0b', rgb: '245 158 11' },
+  { name: 'Índigo', value: '#6366f1', rgb: '99 102 241' },
+  { name: 'Verde', value: '#22c55e', rgb: '34 197 94' }
+]
+
 export const config = reactive({
   emitir_ticket: true,
   sonido: true,

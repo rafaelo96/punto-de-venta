@@ -117,7 +117,7 @@
             <div>
               <h2 class="text-xl font-bold text-neutral-900 leading-tight tracking-tight">Carrito</h2>
               <p class="text-sm text-neutral-500 font-medium flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: totalItems > 0 ? `rgb(var(--color-primary))` : '#d4d4d8' }"></span>
+                <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: totalItems > 0 ? `rgb(var(--color-primary))` : 'rgb(var(--neutral-300))' }"></span>
                 {{ totalItems }} artículo{{ totalItems !== 1 ? 's' : '' }}
               </p>
             </div>
@@ -186,10 +186,11 @@
               </div>
             </div>
 
-            <button @click.stop="eliminarDelCarrito(item.id)"
-              class="absolute p-4 -top-2 -right-2 bg-white text-red-500 border border-neutral-100 shadow-md rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-600 opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
-              <X color="#ef4444" class="w-4 h-4" />
-            </button>
+              <button @click.stop="eliminarDelCarrito(item.id)"
+                class="absolute p-4 -top-2 -right-2 bg-white border border-neutral-100 shadow-md rounded-full flex items-center justify-center hover:bg-red-50 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                :style="{ color: 'rgb(var(--color-danger))' }">
+                <X class="w-4 h-4" />
+              </button>
           </div>
         </div>
       </div>
@@ -332,11 +333,18 @@
           </div>
         </div>
 
-        <button @click="mostrarTicket = false"
-          class="w-full py-4.5 font-bold rounded-xl transition-all duration-300 hover-lift flex items-center justify-center gap-3 shadow-xl"
-          :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' }">
-          <RotateCcw class="w-6 h-6" /> Siguiente Venta
-        </button>
+        <div class="flex gap-3">
+          <button @click="imprimirTicket(ventaActual?.id)" 
+            class="flex-1 py-4 font-bold rounded-xl transition-all duration-300 hover-lift flex items-center justify-center gap-2"
+            style="background-color: rgb(34, 197, 94); color: white;">
+            <Printer class="w-5 h-5" /> Imprimir
+          </button>
+          <button @click="mostrarTicket = false"
+            class="flex-1 py-4 font-bold rounded-xl transition-all duration-300 hover-lift flex items-center justify-center gap-3 shadow-xl"
+            :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' }">
+            <RotateCcw class="w-6 h-6" /> Siguiente
+          </button>
+        </div>
       </div>
     </div>
 
@@ -386,7 +394,8 @@ import { useToast } from '@/composables/useToast'
 import {
   Search, Package, Tag, LayoutGrid, List, ShoppingCart, Trash2, Plus, Minus,
   Calculator, DollarSign, CreditCard, Banknote, ScanLine, X, Loader2, Archive,
-  ArrowLeftRight, Send, Percent, Receipt, Wallet, Coins, RotateCcw, Check
+  ArrowLeftRight, Send, Percent, Receipt, Wallet, Coins, RotateCcw, Check,
+  Printer
 } from 'lucide-vue-next'
 
 const productosStore = useProductosStore()
@@ -526,7 +535,7 @@ const confirmarPago = async () => {
   const itemsConDescuento = items.value.map(item => ({
     producto_id: item.id,
     cantidad: item.cantidad,
-    precio_unitario: item.precio,
+    precio_unitario: item.precio * (1 - (item.descuento || 0) / 100),
     descuento: item.descuento || 0
   }))
 
@@ -552,6 +561,11 @@ const confirmarPago = async () => {
     mostrarTicket.value = true
     ventaActual.value = result.venta
     productosStore.fetchProductos()
+    
+    // Imprimir automáticamente si está configurado
+    if (config.emitir_ticket) {
+      imprimirTicket(result.venta.id)
+    }
   } else {
     toast.error(result.error || 'Error al registrar venta')
   }
@@ -633,6 +647,19 @@ watch(showPagoModal, (val) => {
     input?.focus()
   })
 })
+
+const imprimirTicket = (ventaId) => {
+  const token = localStorage.getItem('pos_token')
+  if (!token) {
+    toast.error('No se encontró token de autenticación')
+    return
+  }
+  const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(token)}`
+  const printWindow = window.open(url, '_blank')
+  if (!printWindow) {
+    toast.warning('Permite ventanas emergentes para imprimir')
+  }
+}
 
 onMounted(async () => {
   await fetchConfig()

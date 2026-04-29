@@ -269,21 +269,35 @@ const chartData = computed(() => {
   }
 })
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { grid: { display: false }, ticks: { color: '#6b7280' } },
-    y: { grid: { color: '#e5e7eb' }, ticks: { color: '#6b7280', callback: v => '$' + v } }
+const getChartColors = () => {
+  const isDark = document.documentElement.classList.contains('dark')
+  return {
+    textColor: isDark ? 'rgb(145, 156, 172)' : 'rgb(107, 114, 128)',
+    gridColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
   }
 }
 
-const chartOptionsDoughnut = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { position: 'right', labels: { color: '#6b7280', usePointStyle: true, padding: 20 } } }
-}
+const chartOptions = computed(() => {
+  const colors = getChartColors()
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: colors.textColor } },
+      y: { grid: { color: colors.gridColor }, ticks: { color: colors.textColor, callback: v => '$' + v } }
+    }
+  }
+})
+
+const chartOptionsDoughnut = computed(() => {
+  const colors = getChartColors()
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'right', labels: { color: colors.textColor, usePointStyle: true, padding: 20 } } }
+  }
+})
 
 onMounted(async () => {
   await fetchConfig()

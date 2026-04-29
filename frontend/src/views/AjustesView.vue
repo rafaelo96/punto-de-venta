@@ -66,25 +66,23 @@
                     <Palette class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                     Color Principal
                   </label>
-                  <div class="flex items-center gap-4 flex-wrap">
-                    <input 
-                      type="color" 
-                      v-model="negocio.color" 
-                      class="w-14 h-14 rounded-2xl cursor-pointer border-0 p-0 overflow-hidden shadow-lg"
-                    />
-                    <input 
-                      type="text" 
-                      v-model="negocio.color" 
-                      class="w-32 px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl font-mono text-sm uppercase"
-                    />
-                    <button 
-                      @click="aplicarColor" 
-                      class="btn flex items-center gap-2 px-5 py-3"
+                  <div class="flex flex-wrap gap-3">
+                    <button
+                      v-for="color in presetColors"
+                      :key="color.value"
+                      @click="seleccionarColor(color)"
+                      class="w-12 h-12 rounded-2xl shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl relative group"
+                      :class="negocio.color === color.value ? 'ring-4 ring-offset-2 scale-110' : ''"
+                      :style="{ backgroundColor: color.value, ringColor: color.value }"
+                      :title="color.name"
                     >
-                      <Check class="w-5 h-5" />
-                      Aplicar
+                      <Check v-if="negocio.color === color.value" class="w-5 h-5 text-white absolute inset-0 m-auto drop-shadow-lg" />
+                      <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        {{ color.name }}
+                      </span>
                     </button>
                   </div>
+                  <p class="mt-8 text-xs text-neutral-400 font-mono">{{ negocio.color }}</p>
                 </div>
               </div>
             </div>
@@ -268,11 +266,12 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { applyThemeColor, config, saveConfig } from '@/stores/config'
-import { 
+import {
   Settings, Store, Upload, Plus, Check, Save, Building2,
   Palette, MapPin, Phone, Tag, Folder, Trash2, AlertCircle,
   Sliders, Receipt, Volume2, Eye, LayoutGrid, Moon, Sun
 } from 'lucide-vue-next'
+import { presetColors } from '@/stores/config'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -337,6 +336,12 @@ const guardarNegocio = async () => {
   } finally {
     guardando.value = false
   }
+}
+
+const seleccionarColor = (color) => {
+  negocio.color = color.value
+  applyThemeColor(color.value)
+  config.color_principal = color.value
 }
 
 const aplicarColor = async () => {

@@ -3,13 +3,14 @@ import jwt from 'jsonwebtoken'
 const JWT_SECRET = process.env.JWT_SECRET
 
 export const authenticate = async (req, res, next) => {
+  // Check Authorization header first, then query parameter (for ticket printing)
   const authHeader = req.headers.authorization
-  const token = authHeader?.replace('Bearer ', '')
-
+  const token = authHeader?.replace('Bearer ', '') || req.query.token
+  
   if (!token) {
     return res.status(401).json({ message: 'No autorizado: Token ausente' })
   }
-
+  
   try {
     const decoded = jwt.verify(token, JWT_SECRET)
     if (!decoded.negocio_id || !decoded.id) {

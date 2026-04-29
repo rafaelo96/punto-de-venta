@@ -23,7 +23,7 @@
         </div>
         
         <h1 class="text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-          Gestión<br><span class="text-transparent bg-clip-text bg-gradient-to-r" :style="{ backgroundImage: 'linear-gradient(to right, rgb(var(--color-primary)), #fff)' }">Inteligente</span>
+          Gestión<br><span class="text-transparent bg-clip-text bg-gradient-to-r" :style="{ backgroundImage: 'linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-white)))' }">Inteligente</span>
         </h1>
         <p class="text-neutral-400 text-lg max-w-md leading-relaxed">
           Optimiza tus ventas, controla tu inventario y haz crecer tu negocio con herramientas diseñadas para ti.

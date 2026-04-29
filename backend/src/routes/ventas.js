@@ -424,95 +424,238 @@ router.get('/ticket/:id', async (req, res) => {
     if (!validator.isInt(req.params.id)) {
       return res.status(400).json({ message: 'ID inválido' })
     }
+    
+    const format = req.query.format || 'html' // 'html' o 'escpos'
+    
+    // Obtener negocio_id del token (del header o query param)
+    const negocioId = req.negocioId
+    if (!negocioId) {
+      return res.status(401).json({ message: 'No autorizado' })
+    }
+    
     const venta = await query(`
       SELECT v.*, u.nombre as usuario_nombre, n.nombre as negocio_nombre,
-             n.logo as negocio_logo, c.valor as direccion_negocio, t.valor as telefono_negocio
+             n.logo as negocio_logo, n.color_principal,
+             c.valor as direccion_negocio, t.valor as telefono_negocio
       FROM ventas v
       LEFT JOIN usuarios u ON v.usuario_id = u.id
       LEFT JOIN negocios n ON v.negocio_id = n.id
       LEFT JOIN configuraciones c ON c.negocio_id = n.id AND c.clave = 'direccion_negocio'
       LEFT JOIN configuraciones t ON t.negocio_id = n.id AND t.clave = 'telefono_negocio'
       WHERE v.id = $1 AND v.negocio_id = $2
-    `, [req.params.id, req.negocioId])
-
+    `, [req.params.id, negocioId])
+    
     if (venta.rows.length === 0) {
       return res.status(404).json({ message: 'Venta no encontrada' })
     }
-
+    
     const items = await query(`
       SELECT vi.*, p.nombre as producto_nombre
       FROM ventas_items vi
       LEFT JOIN productos p ON vi.producto_id = p.id
       WHERE vi.venta_id = $1
     `, [req.params.id])
-
+    
     const v = venta.rows[0]
-    const logoUrl = v.negocio_logo ? `/uploads${v.negocio_logo}` : ''
-
-    let html = `<!DOCTYPE html>
+    
+    // Convertir valores numéricos (vienen como strings desde PostgreSQL)
+    v.total = parseFloat(v.total) || 0
+    v.efectivo = parseFloat(v.efectivo) || 0
+    v.cambio = parseFloat(v.cambio) || 0
+    v.descuento_porcentaje = parseFloat(v.descuento_porcentaje) || 0
+    
+    if (format === 'escpos') {
+      // Generar comandos ESC/POS para impresora térmica
+      const escpos = generateESCPOS(v, items.rows)
+      res.setHeader('Content-Type', 'application/octet-stream')
+      res.send(Buffer.from(escpos))
+    } else {
+      // HTML optimizado para impresión térmica (80mm)
+      const logoUrl = v.negocio_logo ? `${req.protocol}://${req.get('host')}/uploads${v.negocio_logo}` : ''
+      
+      let html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>Ticket #${v.id}</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'IBM Plex Sans', sans-serif; }
-    body { width: 280px; padding: 20px; font-size: 12px; }
-    .header { text-align: center; margin-bottom: 15px; }
-    .logo { width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px; }
-    h1 { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
-    .info { font-size: 10px; color: #666; margin-bottom: 10px; }
-    .divider { border-bottom: 1px dashed #ccc; margin: 10px 0; }
-    .item { display: flex; justify-content: space-between; margin: 5px 0; }
-    .item-name { flex: 1; }
-    .item-price { margin-left: 10px; }
-    .total { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-top: 10px; }
-    .footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; }
-    .status-cancelled { color: #dc2626; }
-    @media print { body { width: auto; } }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; }
+    @media print {
+      @page { size: 80mm auto; margin: 0; }
+      body { width: 80mm; padding: 5mm; font-size: 11px; line-height: 1.3; }
+    }
+    body { width: 80mm; padding: 5mm; font-size: 11px; line-height: 1.3; }
+    .header { text-align: center; margin-bottom: 10px; }
+    .logo { max-width: 60mm; max-height: 20mm; object-fit: contain; margin-bottom: 5px; }
+    h1 { font-size: 14px; font-weight: bold; margin-bottom: 3px; }
+    .info { font-size: 10px; color: #333; margin-bottom: 5px; }
+    .divider { border-bottom: 1px dashed #000; margin: 8px 0; }
+    .item { display: flex; justify-content: space-between; margin: 3px 0; }
+    .item-name { flex: 1; font-size: 10px; }
+    .item-qty { margin-right: 5px; }
+    .item-price { white-space: nowrap; font-size: 10px; }
+    .total { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-top: 8px; border-top: 1px solid #000; padding-top: 8px; }
+    .footer { text-align: center; font-size: 9px; color: #666; margin-top: 15px; }
+    .status-cancelled { color: #dc2626; font-weight: bold; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .mt-5 { margin-top: 5px; }
+    .mb-5 { margin-bottom: 5px; }
   </style>
 </head>
 <body>
   <div class="header">
     ${logoUrl ? `<img src="${logoUrl}" class="logo" />` : ''}
     <h1>${v.negocio_nombre || 'Punto de Venta'}</h1>
-    <p class="info">${v.direccion_negocio || ''}</p>
-    <p class="info">${v.telefono_negocio || ''}</p>
+    ${v.direccion_negocio ? `<p class="info">${v.direccion_negocio}</p>` : ''}
+    ${v.telefono_negocio ? `<p class="info">${v.telefono_negocio}</p>` : ''}
   </div>
+  <div class="divider"></div>
   <p><strong>Ticket #${v.id}</strong></p>
   <p class="info">${new Date(v.created_at).toLocaleString('es-MX')}</p>
   <p class="info">Cajero: ${v.usuario_nombre || '-'}</p>
-  ${v.status === 'cancelada' ? '<p class="status-cancelled"><strong>CANCELADA</strong></p>' : ''}
+  ${v.status === 'cancelada' ? '<p class="status-cancelled"><strong>*** CANCELADA ***</strong></p>' : ''}
   <div class="divider"></div>`
-
+    
     for (const item of items.rows) {
+      const precio = parseFloat(item.precio_unitario) || 0
+      const cantidad = parseInt(item.cantidad) || 0
       html += `
     <div class="item">
-      <span class="item-name">${item.cantidad}x ${item.producto_nombre}</span>
-      <span class="item-price">$${(item.precio_unitario * item.cantidad).toFixed(2)}</span>
+      <span class="item-name"><span class="item-qty">${cantidad}x</span> ${item.producto_nombre}</span>
+      <span class="item-price">$${(precio * cantidad).toFixed(2)}</span>
     </div>`
     }
-
+    
     if (v.descuento_porcentaje > 0) {
       html += `<p class="info">Descuento: ${v.descuento_porcentaje}%</p>`
     }
-
+    
     html += `<div class="divider"></div>
     <div class="total">
       <span>TOTAL</span>
       <span>$${v.total.toFixed(2)}</span>
     </div>
-    <p style="margin-top:5px;font-size:10px;color:#666">Método: ${v.metodo_pago}</p>
-    ${v.metodo_pago === 'efectivo' ? `<p style="font-size:10px;color:#666">Efectivo: $${parseFloat(v.efectivo).toFixed(2)} | Cambio: $${parseFloat(v.cambio).toFixed(2)}</p>` : ''}
+    <p class="mt-5 info">Método: ${v.metodo_pago.toUpperCase()}</p>
+    ${v.metodo_pago === 'efectivo' ? `<p class="info">Efectivo: $${parseFloat(v.efectivo).toFixed(2)}</p><p class="info">Cambio: $${parseFloat(v.cambio).toFixed(2)}</p>` : ''}
     <div class="footer">
-      <p>Gracias por su compra</p>
+      <p>*** Gracias por su compra ***</p>
+      <p>${new Date().getFullYear()} - POS System</p>
     </div>
+    <script>
+      window.onload = function() {
+        setTimeout(function() {
+          window.print();
+        }, 500);
+      }
+    </script>
   </body>
 </html>`
-
-    res.send(html)
+      
+      res.send(html)
+    }
   } catch (error) {
     res.status(500).json({ message: 'Error al generar ticket', error: error.message })
   }
 })
+
+// Función para generar comandos ESC/POS
+function generateESCPOS(venta, items) {
+  const ESC = 0x1B
+  const GS = 0x1D
+  const LF = 0x0A
+  const SPACES = ' '.repeat(48)
+  
+  let cmds = []
+  
+  // Inicializar impresora
+  cmds.push([ESC, 0x40]) // Reset
+  cmds.push([ESC, 0x61, 0x01]) // Centrar texto
+  
+  // Logo (si existe, requiere comandos específicos de la impresora)
+  
+  // Encabezado
+  cmds.push(stringToBytes(venta.negocio_nombre || 'Punto de Venta'))
+  cmds.push([LF])
+  if (venta.direccion_negocio) {
+    cmds.push(stringToBytes(venta.direccion_negocio))
+    cmds.push([LF])
+  }
+  if (venta.telefono_negocio) {
+    cmds.push(stringToBytes(venta.telefono_negocio))
+    cmds.push([LF])
+  }
+  
+  cmds.push([LF])
+  cmds.push([ESC, 0x61, 0x00]) // Alinear a la izquierda
+  
+  // Divisor
+  cmds.push(stringToBytes('------------------------------'))
+  cmds.push([LF])
+  
+  // Info de venta
+  cmds.push(stringToBytes(`Ticket #${venta.id}`))
+  cmds.push([LF])
+  cmds.push(stringToBytes(new Date(venta.created_at).toLocaleString('es-MX')))
+  cmds.push([LF])
+  cmds.push(stringToBytes(`Cajero: ${venta.usuario_nombre || '-'}`))
+  cmds.push([LF])
+  
+  if (venta.status === 'cancelada') {
+    cmds.push(stringToBytes('*** CANCELADA ***'))
+    cmds.push([LF])
+  }
+  
+  cmds.push(stringToBytes('------------------------------'))
+  cmds.push([LF])
+  
+  // Items
+  for (const item of items) {
+    const cantidad = parseInt(item.cantidad) || 0
+    const precio = parseFloat(item.precio_unitario) || 0
+    const line = `${cantidad}x ${item.producto_nombre.substring(0, 20)}`
+    const price = `$${(precio * cantidad).toFixed(2)}`
+    cmds.push(stringToBytes(line.padEnd(30) + price))
+    cmds.push([LF])
+  }
+  
+  cmds.push(stringToBytes('------------------------------'))
+  cmds.push([LF])
+  
+  // Total
+  cmds.push([ESC, 0x45, 0x01]) // Negrita ON
+  cmds.push(stringToBytes(`TOTAL: $${venta.total.toFixed(2)}`))
+  cmds.push([LF])
+  cmds.push([ESC, 0x45, 0x00]) // Negrita OFF
+  cmds.push([LF])
+  
+  // Método de pago
+  cmds.push(stringToBytes(`Método: ${venta.metodo_pago.toUpperCase()}`))
+  cmds.push([LF])
+  
+  if (venta.metodo_pago === 'efectivo') {
+    cmds.push(stringToBytes(`Efectivo: $${venta.efectivo.toFixed(2)}`))
+    cmds.push([LF])
+    cmds.push(stringToBytes(`Cambio: $${venta.cambio.toFixed(2)}`))
+    cmds.push([LF])
+  }
+  
+  cmds.push([LF])
+  cmds.push([ESC, 0x61, 0x01]) // Centrar
+  cmds.push(stringToBytes('*** Gracias por su compra ***'))
+  cmds.push([LF])
+  cmds.push(stringToBytes(new Date().getFullYear() + ' - POS System'))
+  cmds.push([LF, LF, LF])
+  
+  // Cortar papel
+  cmds.push([GS, 0x56, 0x41, 0x03])
+  
+  // Unir todos los comandos
+  return cmds.flat()
+}
+
+function stringToBytes(str) {
+  return Array.from(Buffer.from(str, 'utf8'))
+}
 
 export default router
