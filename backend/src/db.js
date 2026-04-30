@@ -53,21 +53,22 @@ export const initDB = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS productos (
+CREATE TABLE IF NOT EXISTS productos (
         id SERIAL PRIMARY KEY,
         negocio_id INTEGER REFERENCES negocios(id) ON DELETE CASCADE,
         nombre VARCHAR(255) NOT NULL,
         codigo_barras VARCHAR(100),
         categoria_id INTEGER REFERENCES categorias(id),
         precio_compra DECIMAL(10, 2) DEFAULT 0,
-precio_venta DECIMAL(10, 2) DEFAULT 0,
-  descuento_porcentaje DECIMAL(5, 2) DEFAULT 0,
-  stock INTEGER DEFAULT 0,
-  stock_minimo INTEGER DEFAULT 5,
-  activo BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+        precio_venta DECIMAL(10, 2) DEFAULT 0,
+        descuento_porcentaje DECIMAL(5, 2) DEFAULT 0,
+        stock INTEGER DEFAULT 0,
+        stock_minimo INTEGER DEFAULT 5,
+        imagen TEXT,
+        activo BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
 
       CREATE TABLE IF NOT EXISTS ventas (
         id SERIAL PRIMARY KEY,
@@ -121,6 +122,14 @@ CREATE TABLE IF NOT EXISTS ventas_canceladas (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='productos' AND column_name='imagen') THEN
+    ALTER TABLE productos ADD COLUMN imagen TEXT;
+  END IF;
+END
+$$;
+
 CREATE INDEX IF NOT EXISTS idx_productos_negocio ON productos(negocio_id);
 CREATE INDEX IF NOT EXISTS idx_productos_codigo_barras ON productos(codigo_barras);
 CREATE INDEX IF NOT EXISTS idx_productos_activo ON productos(activo);
@@ -131,76 +140,103 @@ CREATE INDEX IF NOT EXISTS idx_categorias_negocio ON categorias(negocio_id);
 CREATE INDEX IF NOT EXISTS idx_ventas_items_venta ON ventas_items(venta_id);
 `)
 
-    const existingNegocio = await client.query('SELECT COUNT(*) FROM negocios')
-    if (parseInt(existingNegocio.rows[0].count) === 0) {
-      const result = await client.query(`
-        INSERT INTO negocios (nombre, slug, color_principal) 
-        VALUES ('NutriStore', 'nutristore', '#3b82f6')
-        RETURNING id
-      `)
-      const negocioId = result.rows[0].id
+     const existingNegocio = await client.query('SELECT COUNT(*) FROM negocios')
+     let negocioId = null
+     if (parseInt(existingNegocio.rows[0].count) === 0) {
+       const result = await client.query(`
+         INSERT INTO negocios (nombre, slug, color_principal) 
+         VALUES ('NutriStore', 'nutristore', '#3b82f6')
+         RETURNING id
+       `)
+       negocioId = result.rows[0].id
 
-      await client.query(`
-        INSERT INTO configuraciones (negocio_id, clave, valor) VALUES
-        ($1, 'emitir_ticket', 'true'),
-        ($1, 'sonido', 'true'),
-        ($1, 'mostrar_stock', 'true'),
-        ($1, 'nombre_negocio', 'NutriStore'),
-        ($1, 'direccion_negocio', ''),
-        ($1, 'telefono_negocio', '')
-      `, [negocioId])
+       await client.query(`
+         INSERT INTO configuraciones (negocio_id, clave, valor) VALUES
+         ($1, 'emitir_ticket', 'true'),
+         ($1, 'sonido', 'true'),
+         ($1, 'mostrar_stock', 'true'),
+         ($1, 'nombre_negocio', 'NutriStore'),
+         ($1, 'direccion_negocio', ''),
+         ($1, 'telefono_negocio', '')
+       `, [negocioId])
 
-      const catResult = await client.query(`
-        INSERT INTO categorias (negocio_id, nombre) VALUES
-        ($1, 'Suplementos'),
-        ($1, 'Vitaminas'),
-        ($1, 'Proteínas'),
-        ($1, 'Batidos'),
-        ($1, 'Snacks Saludables'),
-        ($1, 'Frutos Secos'),
-        ($1, 'Tés e Infusiones'),
-        ($1, 'Miel y Endulzantes'),
-        ($1, 'Aceites')
-        RETURNING id, nombre
-      `, [negocioId])
+       const catResult = await client.query(`
+         INSERT INTO categorias (negocio_id, nombre) VALUES
+         ($1, 'Suplementos'),
+         ($1, 'Vitaminas'),
+         ($1, 'Proteínas'),
+         ($1, 'Batidos'),
+         ($1, 'Snacks Saludables'),
+         ($1, 'Frutos Secos'),
+         ($1, 'Tés e Infusiones'),
+         ($1, 'Miel y Endulzantes'),
+         ($1, 'Aceites')
+         RETURNING id, nombre
+       `, [negocioId])
 
-      const catMap = {}
-      catResult.rows.forEach(c => { catMap[c.nombre] = c.id })
+       const catMap = {}
+       catResult.rows.forEach(c => { catMap[c.nombre] = c.id })
 
-      await client.query(`
-        INSERT INTO productos (negocio_id, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo) VALUES
-        ($1, 'Whey Protein Chocolate', '7503095230011', $2, 350.00, 499.00, 15, 5, true),
-        ($1, 'Whey Protein Vainilla', '7503095230028', $3, 350.00, 499.00, 12, 5, true),
-        ($1, 'Creatina Monohidrato', '7503095230035', $4, 180.00, 299.00, 20, 8, true),
-        ($1, 'BCAA Energy', '7503095230042', $5, 220.00, 349.00, 10, 5, true),
-        ($1, 'Vitamina D3 5000 UI', '7503095230059', $6, 85.00, 159.00, 25, 10, true),
-        ($1, 'Vitamina C 1000mg', '7503095230066', $7, 65.00, 129.00, 30, 10, true),
-        ($1, 'Multivitamínico Adulto', '7503095230073', $8, 120.00, 219.00, 18, 8, true),
-        ($1, 'Batido Proteína Vainilla', '7503095230080', $9, 180.00, 299.00, 8, 3, true),
-        ($1, 'Batido Proteína Chocolate', '7503095230097', $9, 180.00, 299.00, 8, 3, true),
-        ($1, 'Barra Proteína Cookies', '7503095230103', $10, 45.00, 79.00, 20, 10, true),
-        ($1, 'Barra Proteína Chocolate', '7503095230110', $10, 45.00, 79.00, 20, 10, true),
-        ($1, 'Almendra Cruda 250g', '7503095230127', $11, 85.00, 149.00, 15, 5, true),
-        ($1, 'Mix Nuts Original', '7503095230134', $11, 95.00, 169.00, 12, 5, true),
-        ($1, 'Té Verde Matcha', '7503095230141', $12, 150.00, 249.00, 10, 4, true),
-        ($1, 'Té Detox Limón', '7503095230158', $12, 65.00, 119.00, 15, 5, true),
-        ($1, 'Miel de Abeja 500g', '7503095230165', $13, 120.00, 199.00, 8, 3, true),
-        ($1, 'Stevia Líquida', '7503095230172', $13, 55.00, 99.00, 20, 8, true),
-        ($1, 'Aceite de Oliva Extra Virgin', '7503095230189', $14, 180.00, 299.00, 10, 4, true),
-        ($1, 'Aceite de Coco', '7503095230196', $14, 145.00, 249.00, 8, 4, true)
-      `, [
-        negocioId, 
-        catMap['Proteínas'], catMap['Proteínas'], catMap['Suplementos'], catMap['Suplementos'],
-        catMap['Vitaminas'], catMap['Vitaminas'], catMap['Vitaminas'],
-        catMap['Batidos'], catMap['Batidos'],
-        catMap['Snacks Saludables'], catMap['Snacks Saludables'],
-        catMap['Frutos Secos'], catMap['Frutos Secos'],
-        catMap['Tés e Infusiones'], catMap['Tés e Infusiones'],
-        catMap['Miel y Endulzantes'], catMap['Miel y Endulzantes'],
-        catMap['Aceites'], catMap['Aceites']
-      ])
-    }
-    console.log('Database initialized')
+        await client.query(`
+          INSERT INTO productos (negocio_id, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo) VALUES
+          ($1, 'Whey Protein Chocolate', '7503095230011', $2, 350.00, 499.00, 15, 5, true),
+          ($1, 'Whey Protein Vainilla', '7503095230028', $3, 350.00, 499.00, 12, 5, true),
+          ($1, 'Creatina Monohidrato', '7503095230035', $4, 180.00, 299.00, 20, 8, true),
+          ($1, 'BCAA Energy', '7503095230042', $5, 220.00, 349.00, 10, 5, true),
+          ($1, 'Vitamina D3 5000 UI', '7503095230059', $6, 85.00, 159.00, 25, 10, true),
+          ($1, 'Vitamina C 1000mg', '7503095230066', $7, 65.00, 129.00, 30, 10, true),
+          ($1, 'Multivitamínico Adulto', '7503095230073', $8, 120.00, 219.00, 18, 8, true),
+          ($1, 'Batido Proteína Vainilla', '7503095230080', $9, 180.00, 299.00, 8, 3, true),
+          ($1, 'Batido Proteína Chocolate', '7503095230097', $9, 180.00, 299.00, 8, 3, true),
+          ($1, 'Barra Proteína Cookies', '7503095230103', $10, 45.00, 79.00, 20, 10, true),
+          ($1, 'Barra Proteína Chocolate', '7503095230110', $10, 45.00, 79.00, 20, 10, true),
+          ($1, 'Almendra Cruda 250g', '7503095230127', $11, 85.00, 149.00, 15, 5, true),
+          ($1, 'Mix Nuts Original', '7503095230134', $11, 95.00, 169.00, 12, 5, true),
+          ($1, 'Té Verde Matcha', '7503095230141', $12, 150.00, 249.00, 10, 4, true),
+          ($1, 'Té Detox Limón', '7503095230158', $12, 65.00, 119.00, 15, 5, true),
+          ($1, 'Miel de Abeja 500g', '7503095230165', $13, 120.00, 199.00, 8, 3, true),
+          ($1, 'Stevia Líquida', '7503095230172', $13, 55.00, 99.00, 20, 8, true),
+          ($1, 'Aceite de Oliva Extra Virgin', '7503095230189', $14, 180.00, 299.00, 10, 4, true),
+          ($1, 'Aceite de Coco', '7503095230196', $14, 145.00, 249.00, 8, 4, true)
+        `, [
+          negocioId, catMap['Proteínas'],
+          negocioId, catMap['Proteínas'],
+          negocioId, catMap['Suplementos'],
+          negocioId, catMap['Suplementos'],
+          negocioId, catMap['Vitaminas'],
+          negocioId, catMap['Vitaminas'],
+          negocioId, catMap['Vitaminas'],
+          negocioId, catMap['Batidos'],
+          negocioId, catMap['Batidos'],
+          negocioId, catMap['Snacks Saludables'],
+          negocioId, catMap['Snacks Saludables'],
+          negocioId, catMap['Frutos Secos'],
+          negocioId, catMap['Frutos Secos'],
+          negocioId, catMap['Tés e Infusiones'],
+          negocioId, catMap['Tés e Infusiones'],
+          negocioId, catMap['Miel y Endulzantes'],
+          negocioId, catMap['Miel y Endulzantes'],
+          negocioId, catMap['Aceites'],
+          negocioId, catMap['Aceites']
+        ])
+     } else {
+       // Get existing business ID for admin user creation
+       const negocioResult = await client.query('SELECT id FROM negocios LIMIT 1')
+       negocioId = negocioResult.rows[0].id
+     }
+
+     // Create initial admin user if no users exist
+     const existingUsers = await client.query('SELECT COUNT(*) FROM usuarios')
+     if (parseInt(existingUsers.rows[0].count) === 0) {
+       const bcrypt = await import('bcryptjs')
+       const hashedPassword = await bcrypt.default.hash('admin123', 12)
+       await client.query(`
+         INSERT INTO usuarios (negocio_id, nombre, email, password, rol) 
+         VALUES ($1, 'Administrador', 'admin@admin.com', $2, 'administrador')
+       `, [negocioId, hashedPassword])
+       console.log('Created initial admin user')
+      }
+     console.log('Database initialized')
   } catch (error) {
     console.error('Error initializing database:', error)
   } finally {

@@ -2,9 +2,33 @@ import { Router } from 'express'
 import { query, pool } from '../db.js'
 import { authenticate } from '../middleware/auth.js'
 import validator from 'validator'
+import crypto from 'crypto'
 
 const router = Router()
 router.use(authenticate)
+
+const TICKET_SECRET = process.env.TICKET_SECRET || process.env.JWT_SECRET || 'ticket_secret_fallback'
+
+function generateTicketToken(ventaId, negocioId) {
+  const expiry = Math.floor(Date.now() / 1000) + 3600
+  const payload = `${ventaId}:${negocioId}:${expiry}`
+  const signature = crypto.createHmac('sha256', TICKET_SECRET).update(payload).digest('hex')
+  return Buffer.from(`${payload}:${signature}`).toString('base64url')
+}
+
+function verifyTicketToken(token) {
+  try {
+    const decoded = Buffer.from(token, 'base64url').toString()
+    const [ventaId, negocioId, expiry, signature] = decoded.split(':')
+    if (!ventaId || !negocioId || !expiry || !signature) return null
+    if (Math.floor(Date.now() / 1000) > parseInt(expiry)) return null
+    const expectedSig = crypto.createHmac('sha256', TICKET_SECRET).update(`${ventaId}:${negocioId}:${expiry}`).digest('hex')
+    if (signature !== expectedSig) return null
+    return { ventaId: parseInt(ventaId), negocioId: parseInt(negocioId) }
+  } catch {
+    return null
+  }
+}
 
 function generarFolio() {
   const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '')
@@ -428,16 +452,43 @@ router.get('/dashboard', async (req, res) => {
   }
 })
 
+router.get('/ticket-token/:id', async (req, res) => {
+  try {
+    if (!validator.isInt(req.params.id)) {
+      return res.status(400).json({ message: 'ID inválido' })
+    }
+    const venta = await query('SELECT id, negocio_id FROM ventas WHERE id = $1 AND negocio_id = $2', [req.params.id, req.negocioId])
+    if (venta.rows.length === 0) {
+      return res.status(404).json({ message: 'Venta no encontrada' })
+    }
+    const token = generateTicketToken(parseInt(req.params.id), req.negocioId)
+    res.json({ token })
+  } catch (error) {
+    res.status(500).json({ message: 'Error al generar token', error: error.message })
+  }
+})
+
 router.get('/ticket/:id', async (req, res) => {
   try {
     if (!validator.isInt(req.params.id)) {
       return res.status(400).json({ message: 'ID inválido' })
     }
-    
-    const format = req.query.format || 'html' // 'html' o 'escpos'
-    
-    // Obtener negocio_id del token (del header o query param)
-    const negocioId = req.negocioId
+
+    const format = req.query.format || 'html'
+
+    let negocioId = req.negocioId
+
+    if (!negocioId) {
+      const ticketToken = req.query.token
+      if (ticketToken) {
+        const verified = verifyTicketToken(ticketToken)
+        if (!verified || verified.ventaId !== parseInt(req.params.id)) {
+          return res.status(401).json({ message: 'Token de ticket inválido o expirado' })
+        }
+        negocioId = verified.negocioId
+      }
+    }
+
     if (!negocioId) {
       return res.status(401).json({ message: 'No autorizado' })
     }
@@ -483,10 +534,24 @@ router.get('/ticket/:id', async (req, res) => {
       // Handle logo path - it might already include /uploads
       let logoUrl = ''
       if (v.negocio_logo) {
-        // If path already starts with /uploads, use as-is; otherwise prepend /uploads
         logoUrl = v.negocio_logo.startsWith('/uploads') ? v.negocio_logo : `/uploads${v.negocio_logo}`
       }
-      
+
+      const escapeHtml = (str) => {
+        if (!str) return ''
+        return String(str)
+          .replace(/&/g, '&')
+          .replace(/</g, '<')
+          .replace(/>/g, '>')
+          .replace(/"/g, '"')
+          .replace(/'/g, '&#039;')
+      }
+
+      const negocioNombre = escapeHtml(v.negocio_nombre)
+      const direccion = escapeHtml(v.direccion_negocio)
+      const telefono = escapeHtml(v.telefono_negocio)
+      const usuario = escapeHtml(v.usuario_nombre)
+
       let html = `<!DOCTYPE html>
 <html>
 <head>
@@ -520,14 +585,14 @@ router.get('/ticket/:id', async (req, res) => {
 <body>
   <div class="header">
     ${logoUrl ? `<img src="${logoUrl}" class="logo" />` : ''}
-    <h1>${v.negocio_nombre || 'Punto de Venta'}</h1>
-    ${v.direccion_negocio ? `<p class="info">${v.direccion_negocio}</p>` : ''}
-    ${v.telefono_negocio ? `<p class="info">${v.telefono_negocio}</p>` : ''}
+    <h1>${negocioNombre || 'Punto de Venta'}</h1>
+    ${direccion ? `<p class="info">${direccion}</p>` : ''}
+    ${telefono ? `<p class="info">${telefono}</p>` : ''}
   </div>
   <div class="divider"></div>
   <p><strong>Ticket #${v.id}</strong></p>
   <p class="info">${new Date(v.created_at).toLocaleString('es-MX')}</p>
-  <p class="info">Cajero: ${v.usuario_nombre || '-'}</p>
+  <p class="info">Cajero: ${usuario || '-'}</p>
   ${v.status === 'cancelada' ? '<p class="status-cancelled"><strong>*** CANCELADA ***</strong></p>' : ''}
   <div class="divider"></div>`
     
@@ -536,7 +601,7 @@ router.get('/ticket/:id', async (req, res) => {
       const cantidad = parseInt(item.cantidad) || 0
       html += `
     <div class="item">
-      <span class="item-name"><span class="item-qty">${cantidad}x</span> ${item.producto_nombre}</span>
+      <span class="item-name"><span class="item-qty">${cantidad}x</span> ${escapeHtml(item.producto_nombre)}</span>
       <span class="item-price">$${(precio * cantidad).toFixed(2)}</span>
     </div>`
     }

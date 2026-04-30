@@ -16,7 +16,7 @@ import { fileURLToPath } from 'url'
 
 dotenv.config()
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const isProduction = process.env.NODE_ENV === 'production'
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -27,7 +27,18 @@ app.use(helmet({
 }))
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: function (origin, callback) {
+    if (isProduction) {
+      const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim())
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Origen no permitido por CORS'))
+      }
+    } else {
+      callback(null, true)
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
@@ -55,11 +66,11 @@ app.use('/api', generalLimiter)
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
-  setHeaders: (res) => {
-    res.set('Access-Control-Allow-Origin', '*')
-    res.set('Cross-Origin-Resource-Policy', 'cross-origin')
-  }
+app.use('/uploads', express.static(path.join(new URL('.', import.meta.url).pathname, '..', 'uploads'), {
+   setHeaders: (res) => {
+     res.set('Access-Control-Allow-Origin', '*')
+     res.set('Cross-Origin-Resource-Policy', 'cross-origin')
+   }
 }))
 
 app.use((req, res, next) => {

@@ -648,16 +648,16 @@ watch(showPagoModal, (val) => {
   })
 })
 
-const imprimirTicket = (ventaId) => {
-  const token = localStorage.getItem('pos_token')
-  if (!token) {
-    toast.error('No se encontró token de autenticación')
-    return
-  }
-  const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(token)}`
-  const printWindow = window.open(url, '_blank')
-  if (!printWindow) {
-    toast.warning('Permite ventanas emergentes para imprimir')
+const imprimirTicket = async (ventaId) => {
+  try {
+    const { data } = await api.get(`/ventas/ticket-token/${ventaId}`)
+    const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(data.token)}`
+    const printWindow = window.open(url, '_blank')
+    if (!printWindow) {
+      toast.warning('Permite ventanas emergentes para imprimir')
+    }
+  } catch (error) {
+    toast.error('Error al generar ticket para impresión')
   }
 }
 

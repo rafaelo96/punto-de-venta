@@ -1,6 +1,16 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET
+const isProduction = process.env.NODE_ENV === 'production'
+let JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  if (isProduction) {
+    console.error('[FATAL] JWT_SECRET es requerido en producción')
+    process.exit(1)
+  }
+  JWT_SECRET = 'pos_secret_key_2024_dev_fallback'
+  console.warn('[WARNING] JWT_SECRET no está definido, usando fallback de desarrollo')
+}
 
 export const authenticate = async (req, res, next) => {
   // Check Authorization header first, then query parameter (for ticket printing)

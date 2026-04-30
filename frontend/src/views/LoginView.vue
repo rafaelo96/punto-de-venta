@@ -131,7 +131,7 @@
 
         <p class="mt-8 text-center text-neutral-500">
           ¿Primera vez?
-          <button @click="showRegister = true" class="font-semibold ml-1 transition-colors hover:underline"
+          <button @click="showRegister = true" class="font-semibold ml-1 bg-white transition-colors hover:underline" 
             :style="{ color: 'rgb(var(--color-primary))' }"
           >
             Crear cuenta

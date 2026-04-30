@@ -5,8 +5,13 @@ import { query } from '../db.js'
 import validator from 'validator'
 
 const router = Router()
+const isProduction = process.env.NODE_ENV === 'production'
 const JWT_SECRET = process.env.JWT_SECRET
+
 if (!JWT_SECRET) {
+  if (isProduction) {
+    throw new Error('[FATAL] JWT_SECRET es requerido en producción')
+  }
   console.warn('[WARNING] JWT_SECRET no está definido, usando fallback en desarrollo')
 }
 
