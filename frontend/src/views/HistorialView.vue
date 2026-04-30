@@ -83,8 +83,8 @@
                   <p class="font-bold" :style="{ color: 'rgb(var(--color-primary))' }">${{ formatNumber(venta.total) }}</p>
                   <p class="text-xs uppercase text-[rgb(var(--neutral-500))]">{{ venta.metodo_pago }}</p>
                 </div>
-                <button @click.stop="reimprimir(venta)" class="p-2 rounded-xl hover:bg-[rgb(var(--neutral-200))] transition-colors">
-                  <Printer class="w-5 h-5 text-[rgb(var(--neutral-600))]" />
+                <button @click.stop="reimprimir(venta)" class="p-2 rounded-xl hover:bg-[rgb(var(--neutral-200))] transition-colors bg-white">
+                  <Printer class="w-5 h-5"  style="color: rgb(var(--color-primary));"/>
                 </button>
               </div>
             </div>

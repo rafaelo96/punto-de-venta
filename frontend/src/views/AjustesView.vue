@@ -138,7 +138,7 @@
                 <Folder class="w-5 h-5" :style="{ color: 'rgb(var(--color-primary))' }" />
                 {{ cat.nombre }}
               </span>
-              <button @click="eliminarCategoria(cat.id)" class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+              <button @click="eliminarCategoria(cat.id)" class="p-2 text-red-500 bg-white hover:bg-red-50 rounded-xl transition-colors">
                 <Trash2 class="w-5 h-5" />
               </button>
             </div>

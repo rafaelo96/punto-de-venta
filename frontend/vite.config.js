@@ -102,8 +102,7 @@ export default defineConfig({
             urlPattern: /\/api\/ventas.*/i,
             handler: 'NetworkOnly',
             options: {
-              cacheName: 'api-sales-cache',
-              networkTimeoutSeconds: 10
+              cacheName: 'api-sales-cache'
             }
           },
           {
