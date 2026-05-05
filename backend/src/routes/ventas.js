@@ -66,15 +66,17 @@ router.get('/historial', async (req, res) => {
     const params = [req.negocioId]
 
     if (fecha_inicio && fecha_fin) {
-      sql += ` AND DATE(v.created_at) BETWEEN $${params.length + 1} AND $${params.length + 2}`
+      sql += ` AND v.created_at::date BETWEEN $${params.length + 1} AND $${params.length + 2}`
       params.push(fecha_inicio, fecha_fin)
     } else if (fecha_inicio) {
-      sql += ` AND DATE(v.created_at) >= $${params.length + 1}`
+      sql += ` AND v.created_at::date >= $${params.length + 1}`
       params.push(fecha_inicio)
     } else if (fecha_fin) {
-      sql += ` AND DATE(v.created_at) <= $${params.length + 1}`
+      sql += ` AND v.created_at::date <= $${params.length + 1}`
       params.push(fecha_fin)
     }
+    
+    console.log(`[Historial] SQL: ${sql} | Params: ${JSON.stringify(params)}`)
 
     if (busqueda) {
       sql += ` AND (CAST(v.id AS TEXT) LIKE $${params.length + 1} OR u.nombre ILIKE $${params.length + 1})`

@@ -90,26 +90,28 @@
             </div>
           </div>
           
-          <!-- Paginación -->
-          <div v-if="ventas.length > 0" class="flex justify-center gap-2 mt-6">
-            <button 
-              @click="paginaAnterior" 
-              :disabled="pagina === 1"
-              class="btn-ghost px-3 py-2"
-              :class="{ 'opacity-50': pagina === 1 }"
-            >
-              <ChevronLeft class="w-5 h-5" />
-            </button>
-            <span class="px-4 py-2 text-[rgb(var(--neutral-500))]">Página {{ pagina }}</span>
-            <button 
-              @click="paginaSiguiente" 
-              :disabled="ventas.length < 50"
-              class="btn-ghost px-3 py-2"
-              :class="{ 'opacity-50': ventas.length < 50 }"
-            >
-              <ChevronRight class="w-5 h-5" />
-            </button>
-          </div>
+<!-- Paginación -->
+           <div v-if="ventas.length > 0" class="flex justify-center items-center gap-4 mt-8">
+             <button 
+               @click="paginaAnterior" 
+               :disabled="pagina === 1"
+               class="p-3 rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-md hover:scale-105"
+               :class="[pagina === 1 ? 'opacity-50' : 'bg-white text-[rgb(var(--color-primary))] border border-neutral-200']"
+             >
+               <ChevronLeft class="w-5 h-5" />
+             </button>
+<span class="px-4 py-2 rounded-xl bg-neutral-50 text-[rgb(var(--color-primary))] font-medium">
+  Página {{ pagina }} de {{ totalPaginas }}
+</span>
+             <button 
+               @click="paginaSiguiente" 
+               :disabled="ventas.length < 50"
+               class="p-3 rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-md hover:scale-105"
+               :class="[ventas.length < 50 ? 'opacity-50' : 'bg-white text-[rgb(var(--color-primary))] border border-neutral-200']"
+             >
+               <ChevronRight class="w-5 h-5" />
+             </button>
+           </div>
         </div>
       </div>
     </div>
@@ -159,12 +161,13 @@
             <span :style="{ color: 'rgb(var(--color-primary))' }">${{ formatNumber(ventaSeleccionada.total) }}</span>
           </div>
           
-          <div class="flex gap-2 pt-4">
-            <button @click="reimprimir(ventaSeleccionada)" class="btn flex-1 flex items-center justify-center gap-2">
-              <Printer class="w-5 h-5" />
-              Reimprimir
-            </button>
-          </div>
+           <div class="flex gap-2 pt-4">
+             <button @click="reimprimir(ventaSeleccionada)" class="btn flex-1 flex items-center justify-center gap-2"
+               style="background-color: rgb(var(--color-primary)); color: white;">
+               <Printer class="w-5 h-5" />
+               Reimprimir
+             </button>
+           </div>
         </div>
       </div>
     </div>
@@ -180,14 +183,15 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const isDark = ref(document.documentElement.classList.contains('dark'))
 
-const busqueda = ref('')
-const fechaInicio = ref('')
-const fechaFin = ref('')
-const pagina = ref(1)
-const cargando = ref(false)
-const ventas = ref([])
-const ventaSeleccionada = ref(null)
-const itemsVenta = ref([])
+  const busqueda = ref('')
+  const fechaInicio = ref('')
+  const fechaFin = ref('')
+  const pagina = ref(1)
+  const cargando = ref(false)
+  const ventas = ref([])
+  const ventaSeleccionada = ref(null)
+  const itemsVenta = ref([])
+  const totalPaginas = computed(() => Math.max(1, Math.ceil(ventas.value.length / 50)))
 
 const api = axios.create({ baseURL: '/api' })
 api.interceptors.request.use(config => {

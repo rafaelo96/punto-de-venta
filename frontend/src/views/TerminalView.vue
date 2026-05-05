@@ -19,33 +19,33 @@
               />
             </div>
             <div class="flex items-center gap-1 p-1.5 rounded-xl">
-              <button @click="cambiarVista('cards')" class="p-2.5 rounded-xl transition-all duration-300 hover-lift"
-                :class="vista === 'cards' ? 'btn' : 'btn-ghost'"
-                :style="vista === 'cards' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
-                title="Vista tarjetas (Ctrl+1)">
-                <LayoutGrid class="w-5 h-5" />
-              </button>
-              <button @click="cambiarVista('lista')" class="p-2.5 rounded-xl transition-all duration-300 hover-lift"
-                :class="vista === 'lista' ? 'btn' : 'btn-ghost'"
-                :style="vista === 'lista' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
-                title="Vista lista (Ctrl+2)">
-                <List class="w-5 h-5" />
-              </button>
+             <button @click="cambiarVista('cards')" class="p-2.5 rounded-xl transition-all duration-300 hover-lift"
+               :class="vista === 'cards' ? 'btn' : 'bg-white text-[rgb(var(--color-primary))] border border-neutral-200'"
+               :style="vista === 'cards' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
+               title="Vista tarjetas (Ctrl+1)">
+               <LayoutGrid class="w-5 h-5" />
+             </button>
+             <button @click="cambiarVista('lista')" class="p-2.5 rounded-xl transition-all duration-300 hover-lift"
+               :class="vista === 'lista' ? 'btn' : 'bg-white text-[rgb(var(--color-primary))] border border-neutral-200'"
+               :style="vista === 'lista' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
+               title="Vista lista (Ctrl+2)">
+               <List class="w-5 h-5" />
+             </button>
             </div>
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button @click="categoriaSeleccionada = 'todos'" class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 hover-lift"
-              :class="categoriaSeleccionada === 'todos' ? 'shadow-lg scale-[1.02]' : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'"
-              :style="categoriaSeleccionada === 'todos' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' } : {}">
-              <LayoutGrid class="w-4 h-4" /> Todos
-            </button>
-            <button v-for="cat in categorias" :key="cat.id" @click="categoriaSeleccionada = cat.id"
-              class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 hover-lift"
-              :class="categoriaSeleccionada === cat.id ? 'shadow-lg scale-[1.02]' : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'"
-              :style="categoriaSeleccionada === cat.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' } : {}">
-              <Tag class="w-4 h-4" /> {{ cat.nombre }}
-            </button>
+             <button @click="categoriaSeleccionada = 'todos'" class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 hover-lift"
+               :class="categoriaSeleccionada === 'todos' ? 'shadow-lg scale-[1.02]' : 'bg-white text-[rgb(var(--color-primary))] hover:bg-neutral-50 border border-neutral-200'"
+               :style="categoriaSeleccionada === 'todos' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' } : {}">
+               <LayoutGrid class="w-4 h-4" /> Todos
+             </button>
+             <button v-for="cat in categorias" :key="cat.id" @click="categoriaSeleccionada = cat.id"
+               class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 hover-lift"
+               :class="categoriaSeleccionada === cat.id ? 'shadow-lg scale-[1.02]' : 'bg-white text-[rgb(var(--color-primary))] hover:bg-neutral-50 border border-neutral-200'"
+               :style="categoriaSeleccionada === cat.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' } : {}">
+               <Tag class="w-4 h-4" /> {{ cat.nombre }}
+             </button>
           </div>
         </div>
       </header>
@@ -229,14 +229,14 @@
         </div>
 
         <div class="grid grid-cols-3 gap-3 mb-6">
-          <button v-for="metodo in metodosPago" :key="metodo.id" @click="metodoPago = metodo.id"
-            class="py-3 px-2 rounded-2xl text-xs font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2 relative overflow-hidden group"
-            :class="metodoPago === metodo.id ? 'shadow-md scale-[1.02]' : 'bg-white border-neutral-100/80 shadow-sm text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50'"
-            :style="metodoPago === metodo.id ? { backgroundColor: 'white', color: 'rgb(var(--color-primary))', borderColor: 'rgb(var(--color-primary))' } : {}">
-            <div v-if="metodoPago === metodo.id" class="absolute inset-0 opacity-10" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
-            <component :is="metodo.icon" class="w-5 h-5 transition-transform group-hover:scale-110" />
-            {{ metodo.nombre }}
-          </button>
+             <button v-for="metodo in metodosPago" :key="metodo.id" @click="metodoPago = metodo.id"
+               class="py-3 px-2 rounded-2xl text-xs font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2 relative overflow-hidden group"
+               :class="metodoPago === metodo.id ? 'shadow-md scale-[1.02]' : 'bg-white border-neutral-100/80 shadow-sm text-[rgb(var(--color-primary))] hover:border-neutral-300 hover:bg-neutral-50'"
+               :style="metodoPago === metodo.id ? { backgroundColor: 'white', color: 'rgb(var(--color-primary))', borderColor: 'rgb(var(--color-primary))' } : {}">
+               <div v-if="metodoPago === metodo.id" class="absolute inset-0 opacity-10" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
+               <component :is="metodo.icon" class="w-5 h-5 transition-transform group-hover:scale-110" />
+               {{ metodo.nombre }}
+             </button>
         </div>
 
         <button @click="finalizarVenta"
@@ -270,12 +270,12 @@
             <div>
               <label class="block text-sm font-semibold text-neutral-700 mb-3">Método de Pago</label>
               <div class="grid grid-cols-3 gap-3">
-                <button v-for="metodo in metodosPago" :key="metodo.id" @click="metodoPago = metodo.id; calcularCambio()"
-                  class="py-4 rounded-xl text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2"
-                  :class="metodoPago === metodo.id ? 'shadow-lg' : 'bg-white border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50'"
-                  :style="metodoPago === metodo.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', borderColor: 'rgb(var(--color-primary))', boxShadow: 'var(--shadow-depth-3)' } : {}">
-                  <component :is="metodo.icon" class="w-5 h-5" /> {{ metodo.nombre }}
-                </button>
+                 <button v-for="metodo in metodosPago" :key="metodo.id" @click="metodoPago = metodo.id; calcularCambio()"
+                   class="py-4 rounded-xl text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2"
+                   :class="metodoPago === metodo.id ? 'shadow-lg' : 'bg-white border-neutral-200 text-[rgb(var(--color-primary))] hover:border-neutral-300 hover:bg-neutral-50'"
+                   :style="metodoPago === metodo.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', borderColor: 'rgb(var(--color-primary))', boxShadow: 'var(--shadow-depth-3)' } : {}">
+                   <component :is="metodo.icon" class="w-5 h-5" /> {{ metodo.nombre }}
+                 </button>
               </div>
             </div>
 
@@ -391,6 +391,7 @@ import { useProductosStore } from '@/stores/productos'
 import { useVentasStore } from '@/stores/ventas'
 import { config, fetchConfig, saveConfig } from '@/stores/config'
 import { useToast } from '@/composables/useToast'
+import api from '@/api'
 import {
   Search, Package, Tag, LayoutGrid, List, ShoppingCart, Trash2, Plus, Minus,
   Calculator, DollarSign, CreditCard, Banknote, ScanLine, X, Loader2, Archive,
@@ -650,13 +651,18 @@ watch(showPagoModal, (val) => {
 
 const imprimirTicket = async (ventaId) => {
   try {
-    const { data } = await api.get(`/ventas/ticket-token/${ventaId}`)
-    const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(data.token)}`
+    const token = localStorage.getItem('pos_token')
+    if (!token) {
+      toast.error('No hay sesión activa')
+      return
+    }
+    const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(token)}`
     const printWindow = window.open(url, '_blank')
     if (!printWindow) {
       toast.warning('Permite ventanas emergentes para imprimir')
     }
   } catch (error) {
+    console.error('Error printing ticket:', error)
     toast.error('Error al generar ticket para impresión')
   }
 }

@@ -88,8 +88,8 @@
                 {{ comparacionVentasHoy > 0 ? '↑' : '↓' }} {{ Math.abs(comparacionVentasHoy) }}%
               </span>
             </div>
-            <p class="text-3xl font-black text-neutral-900">${{ Number(ventasHoy).toFixed(2) }}</p>
-            <p class="text-xs text-neutral-400 mt-2 font-medium">vs ayer: ${{ Number(ventasAyer).toFixed(2) }}</p>
+            <p class="text-3xl font-black text-neutral-900">${{ round(ventasHoy) }}</p>
+            <p class="text-xs text-neutral-400 mt-2 font-medium">vs ayer: ${{ round(ventasAyer) }}</p>
           </div>
           
           <div class="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
@@ -131,8 +131,8 @@
               </div>
               <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Ganancia Neta</span>
             </div>
-            <p class="text-3xl font-black text-emerald-600">${{ Number(gananciaNeta).toFixed(2) }}</p>
-            <p class="text-xs text-neutral-400 mt-2 font-medium">Margen: {{ Number(margenPorcentaje).toFixed(1) }}%</p>
+            <p class="text-3xl font-black text-emerald-600">${{ round(gananciaNeta) }}</p>
+            <p class="text-xs text-neutral-400 mt-2 font-medium">Margen: {{ round(margenPorcentaje, 1) }}%</p>
           </div>
   
           <div class="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
@@ -143,8 +143,8 @@
               </div>
               <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Tkt Promedio</span>
             </div>
-            <p class="text-3xl font-black text-neutral-900">${{ Number(ticketPromedio).toFixed(2) }}</p>
-            <p class="text-xs text-neutral-400 mt-2 font-medium">Objetivo: ${{ Number(ticketObjetivo).toFixed(2) }}</p>
+            <p class="text-3xl font-black text-neutral-900">${{ round(ticketPromedio) }}</p>
+            <p class="text-xs text-neutral-400 mt-2 font-medium">Objetivo: ${{ round(ticketObjetivo || 150) }}</p>
           </div>
         </div>
 
@@ -180,18 +180,18 @@
           <div class="bg-white p-8 rounded-3xl border border-neutral-200 shadow-sm hover:shadow-md transition-all duration-300">
             <div class="flex items-center gap-3 mb-8">
               <Zap class="w-6 h-6 text-neutral-400" />
-              <h3 class="font-bold text-neutral-900 text-xl tracking-tight">Horas Pico</h3>
+              <h3 class="font-bold text-neutral-900 text-xl tracking-tight">Ventas por Día</h3>
             </div>
             <div class="h-64 w-full">
               <canvas id="peakHoursChart"></canvas>
             </div>
-            <div class="mt-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
-                <Zap class="w-4 h-4" />
+            <div class="mt-8 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <TrendingUp class="w-4 h-4" />
               </div>
               <div>
-                <p class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Hora de mayor flujo</p>
-                <p class="text-sm font-bold text-amber-900">{{ horaPico }} • {{ ventasHoraPico }} ventas</p>
+                <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Mejor día</p>
+                <p class="text-sm font-bold text-emerald-900">{{ mejorDia }} • ${{ formatNumber(ventasMejorDia) }}</p>
               </div>
             </div>
           </div>
@@ -217,7 +217,7 @@
                   </div>
                   <span class="text-neutral-600 text-sm font-bold capitalize">{{ metodo.metodo }}</span>
                 </div>
-                <span class="font-black text-neutral-900 text-sm">${{ Number(metodo.total).toFixed(2) }}</span>
+                <span class="font-black text-neutral-900 text-sm">${{ round(metodo.total) }}</span>
               </div>
             </div>
           </div>
@@ -238,7 +238,7 @@
                   <p class="text-xs text-neutral-400 font-medium">{{ prod.cantidad }} unidades vendidas</p>
                 </div>
                 <div class="text-right">
-                  <p class="font-black text-neutral-900 text-sm">${{ Number(prod.total).toFixed(2) }}</p>
+                  <p class="font-black text-neutral-900 text-sm">${{ round(prod.total) }}</p>
                   <p class="text-[10px] font-bold text-neutral-400 uppercase">{{ prod.participacion }}% share</p>
                 </div>
               </div>
@@ -434,7 +434,7 @@ import { Chart, CategoryScale, LinearScale, BarElement, ArcElement, PointElement
 import axios from 'axios'
 import { 
   Zap, BarChart3, DollarSign, Receipt, Package, TrendingUp, Calculator,
-  CreditCard, Award, AlertTriangle, RotateCw,
+  CreditCard, Award, AlertTriangle, RotateCw, Banknote, ArrowLeftRight, Wallet,
   FileSpreadsheet, FileText, Send
 } from 'lucide-vue-next'
 import { config } from '@/stores/config'
@@ -470,12 +470,12 @@ const metodosPago = ref([])
 const topProductos = ref([])
 const categoriasVentas = ref([])
 const dailyStats = ref([])
-const peakHours = ref([])
+const dayOfWeekStats = ref([])
 
 // New metrics
 const velocidadVentas = ref(0)
-const horaPico = ref('')
-const ventasHoraPico = ref(0)
+const mejorDia = ref('-')
+const ventasMejorDia = ref(0)
 const productosStockBajo = ref([])
 const ultimaActualizacion = ref('')
 const ticketObjetivo = ref(150)
@@ -491,95 +491,49 @@ const margenPorcentaje = computed(() => ventasHoy.value > 0 ? Math.round((gananc
 const fechaInicio = ref('')
 const fechaFin = ref(new Date().toISOString().split('T')[0])
 const cargando = ref(false)
-const reportes = ref(null)
+const periodoVentas = ref('30')
 
-const resumen = computed(() => reportes.value?.resumen || { total_ventas: 0, num_tickets: 0, productos_vendidos: 0, ganancia_neta: 0 })
-const top_productos = computed(() => reportes.value?.top_productos || [])
-const stock_bajo = computed(() => reportes.value?.stock_bajo || [])
-
-const ticketPromedioReporte = computed(() => {
-  if (!resumen.value.num_tickets) return 0
-  return resumen.value.total_ventas / resumen.value.num_tickets
-})
-
-const chartData = computed(() => {
-  const data = reportes.value || {}
-  return {
-    daily: {
-      labels: (data.ventas_diarias || []).map(d => new Date(d.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })),
-      datasets: [{
-        label: 'Ventas',
-        data: (data.ventas_diarias || []).map(d => d.total),
-        backgroundColor: colorPrincipal.value,
-        borderColor: colorPrincipal.value,
-        borderWidth: 1,
-        fill: true,
-        tension: 0.4
-      }]
-    },
-    metodos: {
-      labels: (data.metodos || []).map(m => m.metodo),
-      datasets: [{
-        data: (data.metodos || []).map(m => m.total),
-        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
-      }]
-    },
-    categorias: {
-      labels: (data.categorias || []).map(c => c.categoria),
-      datasets: [{
-        data: (data.categorias || []).map(c => c.total),
-        backgroundColor: ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4']
-      }]
-    }
-  }
-})
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: {
-    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-    x: { grid: { display: false }, ticks: { maxRotation: 45 } }
-  }
-}
-
-const chartOptionsDoughnut = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
-  cutout: '60%'
+const round = (num, decimals = 2) => {
+  const n = Number(num)
+  if (isNaN(n)) return 0
+  return Math.round((n + Number.EPSILON) * Math.pow(10, decimals)) / Math.pow(10, decimals)
 }
 
 const formatNumber = (num) => {
-  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num || 0)
+  return new Intl.NumberFormat('es-MX').format(round(num))
 }
 
-// Period selectors
-const periodoVentas = ref('30')
-
-const periodoReporte = ref('hoy')
-const setPeriodo = (periodo) => {
-  periodoReporte.value = periodo
-  const hoy = new Date()
-  let inicio = new Date()
-  
-  if (periodo === 'hoy') {
-    inicio = hoy
-  } else if (periodo === 'semana') {
-    const dia = hoy.getDay()
-    inicio = new Date(hoy)
-    inicio.setDate(hoy.getDate() - (dia === 0 ? 6 : dia - 1))
-  } else if (periodo === 'mes') {
-    inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+const calcularVentasPorDia = () => {
+  if (dailyStats.value.length === 0) {
+    dayOfWeekStats.value = []
+    return
   }
   
-  fechaInicio.value = inicio.toISOString().split('T')[0]
-  fechaFin.value = hoy.toISOString().split('T')[0]
-  cargarReportes()
+  const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+  const totales = [0, 0, 0, 0, 0, 0, 0]
+  const conteo = [0, 0, 0, 0, 0, 0, 0]
+  
+  dailyStats.value.forEach(d => {
+    const [year, month, day] = d.fecha.split('T')[0].split('-')
+    const fecha = new Date(Number(year), Number(month) - 1, Number(day))
+    const diaIdx = fecha.getDay()
+    totales[diaIdx] += Number(d.total) || 0
+    conteo[diaIdx]++
+  })
+  
+  dayOfWeekStats.value = diasSemana.map((nombre, i) => ({
+    dia: nombre,
+    promedio: conteo[i] > 0 ? round(totales[i] / conteo[i]) : 0,
+    total: round(totales[i])
+  }))
+  
+  const mejor = dayOfWeekStats.value.reduce((max, d) => d.promedio > max.promedio ? d : max, dayOfWeekStats.value[0])
+  mejorDia.value = mejor?.dia || '-'
+  ventasMejorDia.value = mejor?.promedio || 0
 }
 
-// API
+let chartInstances = {}
+
 const api = axios.create({ baseURL: '/api' })
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('pos_token')
@@ -597,15 +551,18 @@ const loadAnalytics = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     
-    const { data: stats } = await api.get('/ventas/stats/daily', {
+    const hace7Dias = new Date()
+    hace7Dias.setDate(hace7Dias.getDate() - 7)
+    const { data: reporteSemana } = await api.get('/ventas/reportes', {
+      params: {
+        fecha_inicio: hace7Dias.toISOString().split('T')[0],
+        fecha_fin: new Date().toISOString().split('T')[0]
+      },
       headers: { Authorization: `Bearer ${token}` }
     })
     
     const ayer = new Date()
     ayer.setDate(hoy.getDate() - 1)
-    const hace7Dias = new Date()
-    hace7Dias.setDate(hoy.getDate() - 7)
-    
     const { data: reporteAyer } = await api.get('/ventas/reportes', {
       params: { 
         fecha_inicio: ayer.toISOString().split('T')[0], 
@@ -614,28 +571,43 @@ const loadAnalytics = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     
-    const { data: reporteSemana } = await api.get('/ventas/reportes', {
-      params: { 
-        fecha_inicio: hace7Dias.toISOString().split('T')[0], 
-        fecha_fin: new Date().toISOString().split('T')[0] 
-      },
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    
-    ventasHoy.value = dash.resumen?.total || 0
+    // Métricas Base
+    const dashboardTotal = dash.resumen?.total || 0
+    ventasHoy.value = dashboardTotal
     ticketsHoy.value = dash.resumen?.tickets || 0
     productosVendidos.value = dash.resumen?.productos_vendidos || 0
     gananciaNeta.value = dash.resumen?.ganancia_neta || 0
-    metodosPago.value = dash.metodos || []
-    topProductos.value = (dash.top_productos || []).map((p) => ({
-      ...p,
-      participacion: ventasHoy.value > 0 ? ((p.total / ventasHoy.value) * 100).toFixed(1) : 0
-    }))
-    categoriasVentas.value = dash.categorias || []
-    dailyStats.value = stats
+    
+    // Distribución y Productos Estrella (Prioridad: Reporte Semanal -> Dashboard)
+    const reportData = reporteSemana
+    metodosPago.value = reportData?.metodos?.length > 0 ? reportData.metodos : (dash.metodos || [])
+    
+    const totalPeriodo = reportData?.resumen?.total_ventas || ventasHoy.value
+    topProductos.value = (reportData?.top_productos?.length > 0 
+      ? reportData.top_productos 
+      : (dash.top_productos || [])).map((p) => {
+        const totalNum = Number(p.total) || 0
+        return {
+          ...p,
+          total: totalNum,
+          participacion: totalPeriodo > 0 ? round((totalNum / totalPeriodo) * 100, 1) : 0
+        }
+      })
+    
+    categoriasVentas.value = reportData?.categorias?.length > 0 ? reportData.categorias : (dash.categorias || [])
+    
+    // Gráfico de Tendencia
+    if (reporteSemana?.ventas_diarias?.length > 0) {
+      dailyStats.value = reporteSemana.ventas_diarias
+    } else if (dash.resumen?.total > 0) {
+      dailyStats.value = [{ fecha: new Date().toISOString(), total: dash.resumen.total }]
+    } else {
+      dailyStats.value = []
+    }
+    
+    calcularVentasPorDia()
     
     costoTotal.value = ventasHoy.value - gananciaNeta.value
-    
     ventasAyer.value = reporteAyer?.resumen?.total_ventas || 0
     comparacionVentasHoy.value = ventasAyer.value > 0 
       ? ((ventasHoy.value - ventasAyer.value) / ventasAyer.value * 100).toFixed(1)
@@ -648,16 +620,7 @@ const loadAnalytics = async () => {
       : 0
     
     velocidadVentas.value = (ventasHoy.value / 12).toFixed(1)
-    
-    peakHours.value = stats.length > 0 ? stats : generatePeakHours()
-    if (peakHours.value.length > 0) {
-      const maxHour = peakHours.value.reduce((max, h) => h.tickets > max.tickets ? h : max, peakHours.value[0])
-      horaPico.value = maxHour.hora || '14:00'
-      ventasHoraPico.value = maxHour.tickets || 0
-    }
-    
     productosStockBajo.value = dash.stock_bajo || []
-    
     ultimaActualizacion.value = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
     
     await nextTick()
@@ -667,139 +630,55 @@ const loadAnalytics = async () => {
   }
 }
 
-const generatePeakHours = () => {
-  const hours = []
-  for (let i = 8; i <= 20; i++) {
-    const hour = i.toString().padStart(2, '0') + ':00'
-    const tickets = Math.floor(Math.random() * 10) + (i >= 12 && i <= 16 ? 15 : 5)
-    hours.push({ hora: hour, tickets })
+const getChartColors = () => {
+  const isDark = document.documentElement.classList.contains('dark')
+  return {
+    textColor: isDark ? '#a3a3a3' : '#737373',
+    gridColor: isDark ? '#404040' : '#e5e5e5',
+    borderColor: isDark ? '#262626' : '#ffffff'
   }
-  return hours
-}
-
-const cargarReportes = async () => {
-  if (!fechaInicio.value || !fechaFin.value) return
-  
-  cargando.value = true
-  try {
-    const { data } = await api.get('/ventas/reportes', {
-      params: { fecha_inicio: fechaInicio.value, fecha_fin: fechaFin.value }
-    })
-    reportes.value = data
-  } catch (e) {
-    console.error(e)
-  } finally {
-    cargando.value = false
-  }
-}
-
-const exportarExcel = async () => {
-  try {
-    const token = localStorage.getItem('pos_token')
-    const url = `/api/ventas/reportes/export?fecha_inicio=${fechaInicio.value}&fecha_fin=${fechaFin.value}&format=excel`
-    
-    const response = await axios({
-      url,
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-      responseType: 'blob'
-    })
-    
-    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-    const downloadUrl = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = `reporte_ventas_${fechaInicio.value}_${fechaFin.value}.xlsx`
-    link.click()
-    window.URL.revokeObjectURL(downloadUrl)
-  } catch (e) {
-    console.error('Error exporting to Excel:', e)
-    showNotification('Error al exportar a Excel', 'error')
-  }
-}
-
-const exportarPDF = async () => {
-  try {
-    const token = localStorage.getItem('pos_token')
-    const url = `/api/ventas/reportes/export?fecha_inicio=${fechaInicio.value}&fecha_fin=${fechaFin.value}&format=pdf`
-    
-    const response = await axios({
-      url,
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-      responseType: 'blob'
-    })
-    
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const downloadUrl = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = `reporte_ventas_${fechaInicio.value}_${fechaFin.value}.pdf`
-    link.click()
-    window.URL.revokeObjectURL(downloadUrl)
-  } catch (e) {
-    console.error('Error exporting to PDF:', e)
-    showNotification('Error al exportar a PDF', 'error')
-  }
-}
-
-const getMetodoIcon = (metodo) => {
-  const icons = {
-    'efectivo': CreditCard,
-    'tarjeta': CreditCard,
-    'transferencia': Send
-  }
-  return icons[metodo] || CreditCard
 }
 
 const getMetodoColor = (metodo) => {
   const colors = {
-    'efectivo': '#10b981',
-    'tarjeta': '#3b82f6',
-    'transferencia': '#8b5cf6'
+    efectivo: '#22c55e',
+    tarjeta: '#3b82f6',
+    transferencia: '#8b5cf6',
+    credito: '#f59e0b'
   }
-  return colors[metodo] || '#6b7280'
+  return colors[metodo?.toLowerCase()] || '#6b7280'
 }
 
-const getChartColors = () => {
-  const isDark = document.documentElement.classList.contains('dark')
-  return {
-    textColor: isDark ? 'rgb(145, 156, 172)' : 'rgb(107, 114, 128)',
-    gridColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-    borderColor: isDark ? 'rgb(30, 30, 30)' : 'white'
+const getMetodoIcon = (metodo) => {
+  const icons = {
+    efectivo: Banknote,
+    tarjeta: CreditCard,
+    transferencia: ArrowLeftRight,
+    credito: Wallet
   }
+  return icons[metodo?.toLowerCase()] || CreditCard
 }
-
-let refreshInterval = null
-let chartInstances = {}
-
-onMounted(async () => {
-  await loadAnalytics()
-  refreshInterval = setInterval(loadAnalytics, 5 * 60 * 1000)
-})
-
-onUnmounted(() => {
-  if (refreshInterval) clearInterval(refreshInterval)
-  Object.values(chartInstances).forEach(chart => chart?.destroy())
-})
 
 const initCharts = () => {
   const primaryColor = colorPrincipal.value
   const colors = getChartColors()
   
-  // Destroy existing charts before creating new ones
   Object.values(chartInstances).forEach(chart => chart?.destroy())
   chartInstances = {}
   
   const salesCtx = document.getElementById('salesChart')
-  if (salesCtx) {
+  if (salesCtx && dailyStats.value.length > 0) {
     chartInstances.sales = new Chart(salesCtx, {
       type: 'line',
       data: {
-        labels: dailyStats.value.map(d => new Date(d.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })),
+        labels: dailyStats.value.map(d => {
+          const [year, month, day] = d.fecha.split('T')[0].split('-')
+          const fecha = new Date(Number(year), Number(month) - 1, Number(day))
+          return fecha.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+        }),
         datasets: [{
-          label: 'Ventas Diarias',
-          data: dailyStats.value.map(d => d.total),
+          label: 'Ventas',
+          data: dailyStats.value.map(d => d.total || 0),
           borderColor: primaryColor,
           backgroundColor: primaryColor + '20',
           fill: true,
@@ -851,10 +730,10 @@ const initCharts = () => {
     chartInstances.peak = new Chart(peakCtx, {
       type: 'bar',
       data: {
-        labels: peakHours.value.map(h => h.hora?.slice(0, 5) || ''),
+        labels: dayOfWeekStats.value.map(d => d.dia),
         datasets: [{
-          label: 'Tickets por Hora',
-          data: peakHours.value.map(h => h.tickets || 0),
+          label: 'Ventas promedio',
+          data: dayOfWeekStats.value.map(d => d.promedio),
           backgroundColor: primaryColor + '80',
           borderColor: primaryColor,
           borderWidth: 2,
@@ -873,6 +752,10 @@ const initCharts = () => {
     })
   }
 }
+
+onMounted(() => {
+  loadAnalytics()
+})
 </script>
 
 <style scoped>
@@ -883,6 +766,6 @@ const initCharts = () => {
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: tranneutralX(30px);
+  transform: translateX(30px);
 }
 </style>
