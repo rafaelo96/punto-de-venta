@@ -1,36 +1,55 @@
 import pg from 'pg'
-import dns from 'dns'
-import dotenv from 'dotenv'
 
 dotenv.config()
 
-// Forzar resolución IPv4
-dns.setDefaultResultOrder('ipv4first')
-
 const { Pool } = pg
 
-const isSupabase = process.env.DB_HOST?.includes('supabase') || process.env.DATABASE_URL?.includes('supabase')
+// Parser simple para connection string
+function parseConnectionString(url) {
+  const match = url.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/)
+  if (!match) return null
+  return {
+    user: match[1],
+    password: match[2],
+    host: match[3],
+    port: parseInt(match[4]),
+    database: match[5]
+  }
+}
 
-// Determinar el host a usar (solo IPv4 para Supabase)
-const dbHost = isSupabase 
-  ? 'db.ttcnrqhzdnejrbqhddxi.supabase.co' // El DNS debería resolver a IPv4
-  : process.env.DB_HOST
+// Soportar DATABASE_URL directamente o variables separadas
+let poolConfig = {}
 
-console.log('Intentando conectar a:', dbHost)
+if (process.env.DATABASE_URL) {
+  const parsed = parseConnectionString(process.env.DATABASE_URL)
+  if (parsed) {
+    poolConfig = {
+      host: parsed.host,
+      port: parsed.port,
+      user: parsed.user,
+      password: parsed.password,
+      database: parsed.database,
+      ssl: { rejectUnauthorized: false, require: true }
+    }
+    console.log('Usando DATABASE_URL, host:', parsed.host)
+  }
+} else {
+  poolConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT) || 5432,
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'postgres',
+    ssl: process.env.DB_HOST?.includes('supabase') ? { rejectUnauthorized: false, require: true } : false
+  }
+  console.log('Usando variables separadas, host:', process.env.DB_HOST)
+}
 
 export const pool = new Pool({
-  host: dbHost,
-  port: parseInt(process.env.DB_PORT) || 5432,
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'postgres',
+  ...poolConfig,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-  ssl: isSupabase ? { 
-    rejectUnauthorized: false,
-    require: true
-  } : false
+  connectionTimeoutMillis: 15000
 })
 
 // Log para debugging
