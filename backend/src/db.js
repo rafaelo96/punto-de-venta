@@ -28,12 +28,23 @@ console.log('DB Config:', {
   port: process.env.DB_PORT ? 'set' : 'not set',
   user: process.env.DB_USER ? 'set' : 'not set',
   database: process.env.DB_NAME ? 'set' : 'not set',
-  isSupabase
+  isSupabase,
+  passwordLength: process.env.DB_PASSWORD?.length || 0
+})
+
+// Test de conexión inicial
+pool.on('connect', () => {
+  console.log('✓ Conexión a PostgreSQL establecida')
 })
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err)
 })
+
+// Probar conexión al inicio
+pool.query('SELECT 1')
+  .then(() => console.log('✓ Query de prueba exitosa'))
+  .catch(err => console.error('✗ Error en query de prueba:', err.message))
 
 export const query = (text, params) => pool.query(text, params)
 
