@@ -1,15 +1,26 @@
 import pg from 'pg'
+import dns from 'dns'
 import dotenv from 'dotenv'
 
 dotenv.config()
+
+// Forzar resolución IPv4
+dns.setDefaultResultOrder('ipv4')
 
 const { Pool } = pg
 
 const isSupabase = process.env.DB_HOST?.includes('supabase') || process.env.DATABASE_URL?.includes('supabase')
 
+// Determinar el host a usar (solo IPv4 para Supabase)
+const dbHost = isSupabase 
+  ? 'db.ttcnrqhzdnejrbqhddxi.supabase.co' // El DNS debería resolver a IPv4
+  : process.env.DB_HOST
+
+console.log('Intentando conectar a:', dbHost)
+
 export const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
+  host: dbHost,
+  port: parseInt(process.env.DB_PORT) || 5432,
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'postgres',
