@@ -5,6 +5,8 @@ dotenv.config()
 
 const { Pool } = pg
 
+const isSupabase = process.env.DB_HOST?.includes('supabase') || process.env.DATABASE_URL?.includes('supabase')
+
 export const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
@@ -13,8 +15,20 @@ export const pool = new Pool({
   database: process.env.DB_NAME || 'postgres',
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-  ssl: process.env.DB_HOST?.includes('supabase') ? { rejectUnauthorized: false } : false
+  connectionTimeoutMillis: 10000,
+  ssl: isSupabase ? { 
+    rejectUnauthorized: false,
+    require: true
+  } : false
+})
+
+// Log para debugging
+console.log('DB Config:', {
+  host: process.env.DB_HOST ? 'set' : 'not set',
+  port: process.env.DB_PORT ? 'set' : 'not set',
+  user: process.env.DB_USER ? 'set' : 'not set',
+  database: process.env.DB_NAME ? 'set' : 'not set',
+  isSupabase
 })
 
 pool.on('error', (err) => {
