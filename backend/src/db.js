@@ -1,11 +1,19 @@
 import pg from 'pg'
 import dotenv from 'dotenv'
 
+// Forzar DNS a IPv4 a nivel de proceso
+try {
+  const { setDefaultResultOrder } = require('dns')
+  setDefaultResultOrder('ipv4first')
+  console.log('DNS configurado para IPv4')
+} catch (e) {
+  console.log('dns not available')
+}
+
 dotenv.config()
 
 console.log('=== INICIANDO DB ===')
 console.log('DATABASE_URL presente:', !!process.env.DATABASE_URL)
-console.log('DB_HOST presente:', !!process.env.DB_HOST)
 
 const { Pool } = pg
 
@@ -33,15 +41,17 @@ if (process.env.DATABASE_URL) {
   console.log('Usando DATABASE_URL...')
   const parsed = parseConnectionString(process.env.DATABASE_URL)
   if (parsed) {
+    // Si hay una IP manual configurada, usarla; si no, intentar resolver
+    const hostToUse = process.env.DB_HOST_IP || parsed.host
     poolConfig = {
-      host: parsed.host,
+      host: hostToUse,
       port: parsed.port,
       user: parsed.user,
       password: parsed.password,
       database: parsed.database,
       ssl: { rejectUnauthorized: false, require: true }
     }
-    console.log('Host resuelto:', parsed.host)
+    console.log('Host a conectar:', hostToUse)
   }
 } else if (process.env.DB_HOST) {
   console.log('Usando variables separadas...')
