@@ -2,12 +2,20 @@ import pg from 'pg'
 
 dotenv.config()
 
+console.log('=== INICIANDO DB ===')
+console.log('DATABASE_URL presente:', !!process.env.DATABASE_URL)
+console.log('DB_HOST presente:', !!process.env.DB_HOST)
+
 const { Pool } = pg
 
 // Parser simple para connection string
 function parseConnectionString(url) {
+  console.log('Parseando URL:', url.substring(0, 50) + '...')
   const match = url.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/)
-  if (!match) return null
+  if (!match) {
+    console.log('ERROR: No se pudo parsear la URL')
+    return null
+  }
   return {
     user: match[1],
     password: match[2],
@@ -21,6 +29,7 @@ function parseConnectionString(url) {
 let poolConfig = {}
 
 if (process.env.DATABASE_URL) {
+  console.log('Usando DATABASE_URL...')
   const parsed = parseConnectionString(process.env.DATABASE_URL)
   if (parsed) {
     poolConfig = {
@@ -31,18 +40,22 @@ if (process.env.DATABASE_URL) {
       database: parsed.database,
       ssl: { rejectUnauthorized: false, require: true }
     }
-    console.log('Usando DATABASE_URL, host:', parsed.host)
+    console.log('Host resuelto:', parsed.host)
   }
-} else {
+} else if (process.env.DB_HOST) {
+  console.log('Usando variables separadas...')
   poolConfig = {
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT) || 5432,
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'postgres',
     ssl: process.env.DB_HOST?.includes('supabase') ? { rejectUnauthorized: false, require: true } : false
   }
-  console.log('Usando variables separadas, host:', process.env.DB_HOST)
+  console.log('Host:', process.env.DB_HOST)
+} else {
+  console.log('ERROR: No hay DATABASE_URL ni DB_HOST')
+  process.exit(1)
 }
 
 export const pool = new Pool({
@@ -50,16 +63,6 @@ export const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000
-})
-
-// Log para debugging
-console.log('DB Config:', {
-  host: process.env.DB_HOST ? 'set' : 'not set',
-  port: process.env.DB_PORT ? 'set' : 'not set',
-  user: process.env.DB_USER ? 'set' : 'not set',
-  database: process.env.DB_NAME ? 'set' : 'not set',
-  isSupabase,
-  passwordLength: process.env.DB_PASSWORD?.length || 0
 })
 
 // Test de conexión inicial
