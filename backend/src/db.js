@@ -1,19 +1,23 @@
 import pg from 'pg'
 import dotenv from 'dotenv'
-
-// Forzar DNS a IPv4 a nivel de proceso
-try {
-  const { setDefaultResultOrder } = require('dns')
-  setDefaultResultOrder('ipv4first')
-  console.log('DNS configurado para IPv4')
-} catch (e) {
-  console.log('dns not available')
-}
+import { promises as dns } from 'dns'
 
 dotenv.config()
 
 console.log('=== INICIANDO DB ===')
 console.log('DATABASE_URL presente:', !!process.env.DATABASE_URL)
+
+// Resolver hostname a IPv4
+async function resolveToIPv4(hostname) {
+  try {
+    const addresses = await dns.resolve4(hostname)
+    console.log('IPs IPv4 resueltas:', addresses)
+    return addresses[0]  // Devuelve la primera IPv4
+  } catch (err) {
+    console.log('Error resolviendo IPv4:', err.message)
+    return null
+  }
+}
 
 const { Pool } = pg
 
