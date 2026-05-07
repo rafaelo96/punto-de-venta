@@ -2,9 +2,10 @@ import pg from 'pg'
 import dotenv from 'dotenv'
 import { promises as dns } from 'dns'
 
-dotenv.config()
+dotenv.config({ path: process.env.NODE_ENV === 'production' ? undefined : '.env' })
 
 console.log('=== INICIANDO DB ===')
+console.log('NODE_ENV:', process.env.NODE_ENV)
 console.log('DATABASE_URL presente:', !!process.env.DATABASE_URL)
 
 // Resolver hostname a IPv4
@@ -45,7 +46,6 @@ if (process.env.DATABASE_URL) {
   console.log('Usando DATABASE_URL...')
   const parsed = parseConnectionString(process.env.DATABASE_URL)
   if (parsed) {
-    // Si hay una IP manual configurada, usarla; si no, intentar resolver
     const hostToUse = process.env.DB_HOST_IP || parsed.host
     poolConfig = {
       host: hostToUse,
@@ -58,14 +58,15 @@ if (process.env.DATABASE_URL) {
     console.log('Host a conectar:', hostToUse)
   }
 } else if (process.env.DB_HOST) {
-  console.log('Usando variables separadas...')
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.DB_PORT === '6543'
+  console.log('Usando variables separadas (producción:', isProduction, ')...')
   poolConfig = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT) || 5432,
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'postgres',
-    ssl: process.env.DB_HOST?.includes('supabase') ? { rejectUnauthorized: false, require: true } : false
+    ssl: isProduction ? { rejectUnauthorized: false, require: true } : false
   }
   console.log('Host:', process.env.DB_HOST)
 } else {
