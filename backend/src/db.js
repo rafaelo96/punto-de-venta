@@ -249,52 +249,38 @@ CREATE INDEX IF NOT EXISTS idx_ventas_items_venta ON ventas_items(venta_id);
          RETURNING id, nombre
        `, [negocioId])
 
-       const catMap = {}
-       catResult.rows.forEach(c => { catMap[c.nombre] = c.id })
+const catMap = {}
+        catResult.rows.forEach(c => { catMap[c.nombre] = c.id })
 
-        await client.query(`
-          INSERT INTO productos (negocio_id, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo) VALUES
-          ($1, 'Whey Protein Chocolate', '7503095230011', $2, 350.00, 499.00, 15, 5, true),
-          ($1, 'Whey Protein Vainilla', '7503095230028', $3, 350.00, 499.00, 12, 5, true),
-          ($1, 'Creatina Monohidrato', '7503095230035', $4, 180.00, 299.00, 20, 8, true),
-          ($1, 'BCAA Energy', '7503095230042', $5, 220.00, 349.00, 10, 5, true),
-          ($1, 'Vitamina D3 5000 UI', '7503095230059', $6, 85.00, 159.00, 25, 10, true),
-          ($1, 'Vitamina C 1000mg', '7503095230066', $7, 65.00, 129.00, 30, 10, true),
-          ($1, 'Multivitamínico Adulto', '7503095230073', $8, 120.00, 219.00, 18, 8, true),
-          ($1, 'Batido Proteína Vainilla', '7503095230080', $9, 180.00, 299.00, 8, 3, true),
-          ($1, 'Batido Proteína Chocolate', '7503095230097', $9, 180.00, 299.00, 8, 3, true),
-          ($1, 'Barra Proteína Cookies', '7503095230103', $10, 45.00, 79.00, 20, 10, true),
-          ($1, 'Barra Proteína Chocolate', '7503095230110', $10, 45.00, 79.00, 20, 10, true),
-          ($1, 'Almendra Cruda 250g', '7503095230127', $11, 85.00, 149.00, 15, 5, true),
-          ($1, 'Mix Nuts Original', '7503095230134', $11, 95.00, 169.00, 12, 5, true),
-          ($1, 'Té Verde Matcha', '7503095230141', $12, 150.00, 249.00, 10, 4, true),
-          ($1, 'Té Detox Limón', '7503095230158', $12, 65.00, 119.00, 15, 5, true),
-          ($1, 'Miel de Abeja 500g', '7503095230165', $13, 120.00, 199.00, 8, 3, true),
-          ($1, 'Stevia Líquida', '7503095230172', $13, 55.00, 99.00, 20, 8, true),
-          ($1, 'Aceite de Oliva Extra Virgin', '7503095230189', $14, 180.00, 299.00, 10, 4, true),
-          ($1, 'Aceite de Coco', '7503095230196', $14, 145.00, 249.00, 8, 4, true)
-        `, [
-          negocioId, catMap['Proteínas'],
-          negocioId, catMap['Proteínas'],
-          negocioId, catMap['Suplementos'],
-          negocioId, catMap['Suplementos'],
-          negocioId, catMap['Vitaminas'],
-          negocioId, catMap['Vitaminas'],
-          negocioId, catMap['Vitaminas'],
-          negocioId, catMap['Batidos'],
-          negocioId, catMap['Batidos'],
-          negocioId, catMap['Snacks Saludables'],
-          negocioId, catMap['Snacks Saludables'],
-          negocioId, catMap['Frutos Secos'],
-          negocioId, catMap['Frutos Secos'],
-          negocioId, catMap['Tés e Infusiones'],
-          negocioId, catMap['Tés e Infusiones'],
-          negocioId, catMap['Miel y Endulzantes'],
-          negocioId, catMap['Miel y Endulzantes'],
-          negocioId, catMap['Aceites'],
-          negocioId, catMap['Aceites']
-        ])
-     } else {
+        const productos = [
+          ['Whey Protein Chocolate', '7503095230011', 'Proteínas', 350.00, 499.00, 15],
+          ['Whey Protein Vainilla', '7503095230028', 'Proteínas', 350.00, 499.00, 12],
+          ['Creatina Monohidrato', '7503095230035', 'Suplementos', 180.00, 299.00, 20],
+          ['BCAA Energy', '7503095230042', 'Suplementos', 220.00, 349.00, 10],
+          ['Vitamina D3 5000 UI', '7503095230059', 'Vitaminas', 85.00, 159.00, 25],
+          ['Vitamina C 1000mg', '7503095230066', 'Vitaminas', 65.00, 129.00, 30],
+          ['Multivitamínico Adulto', '7503095230073', 'Vitaminas', 120.00, 219.00, 18],
+          ['Batido Proteína Vainilla', '7503095230080', 'Batidos', 180.00, 299.00, 8],
+          ['Batido Proteína Chocolate', '7503095230097', 'Batidos', 180.00, 299.00, 8],
+          ['Barra Proteína Cookies', '7503095230103', 'Snacks Saludables', 45.00, 79.00, 20],
+          ['Barra Proteína Chocolate', '7503095230110', 'Snacks Saludables', 45.00, 79.00, 20],
+          ['Almendra Cruda 250g', '7503095230127', 'Frutos Secos', 85.00, 149.00, 15],
+          ['Mix Nuts Original', '7503095230134', 'Frutos Secos', 95.00, 169.00, 12],
+          ['Té Verde Matcha', '7503095230141', 'Tés e Infusiones', 150.00, 249.00, 10],
+          ['Té Detox Limón', '7503095230158', 'Tés e Infusiones', 65.00, 119.00, 15],
+          ['Miel de Abeja 500g', '7503095230165', 'Miel y Endulzantes', 120.00, 199.00, 8],
+          ['Stevia Líquida', '7503095230172', 'Miel y Endulzantes', 55.00, 99.00, 20],
+          ['Aceite de Oliva Extra Virgin', '7503095230189', 'Aceites', 180.00, 299.00, 10],
+          ['Aceite de Coco', '7503095230196', 'Aceites', 145.00, 249.00, 8]
+        ]
+
+        for (const p of productos) {
+          await client.query(`
+            INSERT INTO productos (negocio_id, nombre, codigo_barras, categoria_id, precio_compra, precio_venta, stock, stock_minimo, activo)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 5, true)
+          `, [negocioId, p[0], p[1], catMap[p[2]], p[3], p[4], p[5]])
+        }
+         } else {
        // Get existing business ID for admin user creation
        const negocioResult = await client.query('SELECT id FROM negocios LIMIT 1')
        negocioId = negocioResult.rows[0].id
