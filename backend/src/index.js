@@ -28,15 +28,23 @@ app.use(helmet({
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (isProduction) {
-      const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim())
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true)
-      } else {
-        callback(new Error('Origen no permitido por CORS'))
-      }
-    } else {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      process.env.CORS_ORIGIN,
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ].filter(Boolean)
+
+    if (!origin) {
       callback(null, true)
+    } else if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else if (isProduction && origin?.endsWith('.vercel.app')) {
+      callback(null, true)
+    } else if (!isProduction) {
+      callback(null, true)
+    } else {
+      callback(new Error('Origen no permitido por CORS: ' + origin))
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
