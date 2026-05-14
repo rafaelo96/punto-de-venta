@@ -536,18 +536,35 @@ const cargarReportes = async () => {
     resumen.value = data.resumen || { total_ventas: 0, num_tickets: 0, productos_vendidos: 0, ganancia_neta: 0 }
     stock_bajo.value = data.stock_bajo || []
     top_productos.value = data.top_productos || []
+    const pc = colorPrincipal.value
+    const palette = [pc, '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444', '#14b8a6']
     chartData.value = {
       daily: {
         labels: (data.ventas_diarias || []).map(d => d.fecha?.split('T')[0] || ''),
-        datasets: [{ label: 'Ventas', data: (data.ventas_diarias || []).map(d => d.total || 0) }]
+        datasets: [{
+          label: 'Ventas',
+          data: (data.ventas_diarias || []).map(d => d.total || 0),
+          backgroundColor: pc + '80',
+          borderColor: pc,
+          borderWidth: 2,
+          borderRadius: 4
+        }]
       },
       metodos: {
         labels: (data.metodos || []).map(m => m.metodo),
-        datasets: [{ data: (data.metodos || []).map(m => m.total) }]
+        datasets: [{
+          data: (data.metodos || []).map(m => m.total),
+          backgroundColor: palette.slice(0, (data.metodos || []).length),
+          borderWidth: 2
+        }]
       },
       categorias: {
         labels: (data.categorias || []).map(c => c.categoria),
-        datasets: [{ data: (data.categorias || []).map(c => c.total) }]
+        datasets: [{
+          data: (data.categorias || []).map(c => c.total),
+          backgroundColor: palette.slice(0, (data.categorias || []).length),
+          borderWidth: 2
+        }]
       }
     }
   } catch (e) {
@@ -558,17 +575,123 @@ const cargarReportes = async () => {
 }
 
 const exportarExcel = () => {
-  const XLSX = { utils: { aoa_to_sheet: () => ({}), book_new: () => ({}), book_append_sheet: () => {} }, writeFile: () => {} }
-  try { import('xlsx').then(XLSX => {
+  import('xlsx').then(XLSX => {
     const wb = XLSX.utils.book_new()
-    const ws = XLSX.utils.aoa_to_sheet([['Concepto', 'Valor'], ['Total Ventas', resumen.value?.total_ventas || 0], ['Tickets', resumen.value?.num_tickets || 0]])
-    XLSX.utils.book_append_sheet(wb, ws, 'Reporte')
+    const data = reportes.value
+    if (!data) return
+
+    const res = data.resumen || {}
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['Reporte del ' + fechaInicio.value + ' al ' + fechaFin.value],
+      [],
+      ['Métrica', 'Valor'],
+      ['Total Ventas', res.total_ventas || 0],
+      ['Tickets', res.num_tickets || 0],
+      ['Productos Vendidos', res.productos_vendidos || 0],
+      ['Ganancia Neta', res.ganancia_neta || 0],
+      ['Ticket Promedio', res.num_tickets > 0 ? (res.total_ventas / res.num_tickets) : 0]
+    ]), 'Resumen')
+
+    const diarias = data.ventas_diarias || []
+    if (diarias.length) {
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+        ['Fecha', 'Ventas', 'Tickets'],
+        ...diarias.map(d => [d.fecha, d.total || 0, d.tickets || 0])
+      ]), 'Ventas Diarias')
+    }
+
+    const productos = data.top_productos || []
+    if (productos.length) {
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+        ['Producto', 'Cantidad', 'Total'],
+        ...productos.map(p => [p.nombre, p.cantidad || 0, p.total || 0])
+      ]), 'Top Productos')
+    }
+
+    const categorias = data.categorias || []
+    if (categorias.length) {
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+        ['Categoría', 'Total'],
+        ...categorias.map(c => [c.categoria, c.total || 0])
+      ]), 'Categorías')
+    }
+
+    const metodos = data.metodos || []
+    if (metodos.length) {
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+        ['Método', 'Total', 'Cantidad'],
+        ...metodos.map(m => [m.metodo, m.total || 0, m.cantidad || 0])
+      ]), 'Métodos de Pago')
+    }
+
+    const stock = data.stock_bajo || []
+    if (stock.length) {
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+        ['Producto', 'Stock Actual', 'Stock Mínimo'],
+        ...stock.map(s => [s.nombre, s.stock, s.stock_minimo])
+      ]), 'Stock Bajo')
+    }
+
     XLSX.writeFile(wb, `reporte_${fechaInicio.value}_${fechaFin.value}.xlsx`)
-  }) } catch {}
+  })
 }
 
 const exportarPDF = () => {
-  window.print()
+  const data = reportes.value
+  if (!data) return
+  const r = data.resumen || {}
+  const win = window.open('', '_blank')
+  if (!win) return
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+  body { padding: 20px; color: #111; }
+  h1 { font-size: 18px; margin-bottom: 5px; }
+  .periodo { font-size: 12px; color: #666; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+  th { background: #f3f4f6; text-align: left; padding: 8px; font-weight: 600; border: 1px solid #d1d5db; }
+  td { padding: 6px 8px; border: 1px solid #d1d5db; }
+  h2 { font-size: 14px; margin: 20px 0 8px; }
+  @media print { body { padding: 10px; } }
+</style></head><body>
+<h1>Reporte de Ventas</h1>
+<p class="periodo">${fechaInicio.value} — ${fechaFin.value}</p>
+<h2>Resumen</h2>
+<table><tr><th>Métrica</th><th>Valor</th></tr>
+<tr><td>Total Ventas</td><td>$${formatNumber(r.total_ventas)}</td></tr>
+<tr><td>Tickets</td><td>${r.num_tickets}</td></tr>
+<tr><td>Productos</td><td>${r.productos_vendidos}</td></tr>
+<tr><td>Ganancia Neta</td><td>$${formatNumber(r.ganancia_neta)}</td></tr>
+<tr><td>Ticket Promedio</td><td>$${formatNumber(r.num_tickets > 0 ? r.total_ventas / r.num_tickets : 0)}</td></tr>
+</table>`)
+  const diarias = data.ventas_diarias || []
+  if (diarias.length) {
+    win.document.write(`<h2>Ventas Diarias</h2><table><tr><th>Fecha</th><th>Ventas</th><th>Tickets</th></tr>
+${diarias.map(d => `<tr><td>${d.fecha}</td><td>$${formatNumber(d.total)}</td><td>${d.tickets}</td></tr>`).join('')}</table>`)
+  }
+  const prods = data.top_productos || []
+  if (prods.length) {
+    win.document.write(`<h2>Top Productos</h2><table><tr><th>Producto</th><th>Cantidad</th><th>Total</th></tr>
+${prods.map(p => `<tr><td>${p.nombre}</td><td>${p.cantidad}</td><td>$${formatNumber(p.total)}</td></tr>`).join('')}</table>`)
+  }
+  const cats = data.categorias || []
+  if (cats.length) {
+    win.document.write(`<h2>Por Categoría</h2><table><tr><th>Categoría</th><th>Total</th></tr>
+${cats.map(c => `<tr><td>${c.categoria}</td><td>$${formatNumber(c.total)}</td></tr>`).join('')}</table>`)
+  }
+  const mets = data.metodos || []
+  if (mets.length) {
+    win.document.write(`<h2>Métodos de Pago</h2><table><tr><th>Método</th><th>Total</th><th>Cantidad</th></tr>
+${mets.map(m => `<tr><td>${m.metodo}</td><td>$${formatNumber(m.total)}</td><td>${m.cantidad}</td></tr>`).join('')}</table>`)
+  }
+  const stock = data.stock_bajo || []
+  if (stock.length) {
+    win.document.write(`<h2>Stock Bajo</h2><table><tr><th>Producto</th><th>Stock</th><th>Mínimo</th></tr>
+${stock.map(s => `<tr><td>${s.nombre}</td><td>${s.stock}</td><td>${s.stock_minimo}</td></tr>`).join('')}</table>`)
+  }
+  win.document.write('</body></html>')
+  win.document.close()
+  setTimeout(() => win.print(), 500)
 }
 
 const round = (num, decimals = 2) => {
