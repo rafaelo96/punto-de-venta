@@ -430,7 +430,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Bar, Doughnut, Pie } from 'vue-chartjs'
-import { Chart, CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Filler, Title, Tooltip, Legend } from 'chart.js'
+import { Chart, CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Filler, Title, Tooltip, Legend, LineController, BarController, DoughnutController, PieController } from 'chart.js'
 import axios from 'axios'
 import { 
   Zap, BarChart3, DollarSign, Receipt, Package, TrendingUp, Calculator,
@@ -439,7 +439,7 @@ import {
 } from 'lucide-vue-next'
 import { config } from '@/stores/config'
 
-Chart.register(CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Filler, Title, Tooltip, Legend)
+Chart.register(CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Filler, Title, Tooltip, Legend, LineController, BarController, DoughnutController, PieController)
 
 const colorPrincipal = computed(() => config.color_principal || '#3b82f6')
 
