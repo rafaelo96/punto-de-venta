@@ -76,10 +76,10 @@
               <td class="px-6 py-4 text-right font-bold text-neutral-900">${{ Number(producto.precio_venta).toFixed(2) }}</td>
               <td class="px-6 py-4">
                 <div class="flex items-center justify-center gap-2">
-                  <button @click="editarProducto(producto)" class="p-2.5 rounded-xl transition-all duration-300 hover-lift" :style="{ color: `rgb(var(--color-primary))`, backgroundColor: `rgb(var(--color-primary))` + '20' }">
+                  <button @click="editarProducto(producto)" class="p-2.5 rounded-xl transition-all :hover:bg-blue-50 duration-300 bg-white hover-lift" :style="{ color: `rgb(var(--color-primary))` }">
                     <Pencil class="w-4 h-4" />
                   </button>
-                  <button @click="confirmarEliminar(producto)" class="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 hover-lift">
+                  <button @click="confirmarEliminar(producto)" class="p-2.5 text-red-600 hover:bg-red-50 bg-white rounded-xl transition-all duration-300 hover-lift">
                     <Trash2 class="w-4 h-4" />
                   </button>
                 </div>

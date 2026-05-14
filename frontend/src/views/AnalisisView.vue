@@ -45,15 +45,15 @@
       <!-- Tabs -->
       <div class="flex gap-2 mt-6 p-1.5 bg-neutral-200/50 w-fit rounded-2xl">
         <button @click="activeTab = 'vivo'"
-          class="px-5 py-2 rounded-xl text-xs font-bold transition-all duration-200"
-          :class="activeTab === 'vivo' ? 'bg-white shadow-sm scale-105' : 'text-white-400 hover:text-white-700'"
-          :style="activeTab === 'vivo' ? 'color: rgb(var(--color-primary))' : ''">
+          class="px-5 py-2 rounded-xl text-xs font-bold transition-all duration-200 bg-white hover-lift"
+          :class="activeTab === 'vivo' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'"
+          :style="activeTab === 'vivo' ? 'background-color: rgb(var(--color-primary))' : ''">
           Panel en Vivo
         </button>
         <button @click="activeTab = 'historico'"
-          class="px-5 py-2 rounded-xl text-xs font-bold transition-all duration-200"
-          :class="activeTab === 'historico' ? 'bg-white shadow-sm scale-105' : 'text-white-400 hover:text-white-700'"
-          :style="activeTab === 'historico' ? 'color: rgb(var(--color-primary))' : ''">
+          class="px-5 py-2 rounded-xl text-xs font-bold transition-all duration-200 bg-white hover-lift"
+          :class="activeTab === 'historico' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'"
+          :style="activeTab === 'historico' ? 'background-color: rgb(var(--color-primary))' : ''">
           Reportes Históricos
         </button>
       </div>
@@ -161,13 +161,15 @@
               </div>
               <div class="flex gap-1 p-1 bg-neutral-100 rounded-xl">
                 <button @click="periodoVentas = '7'" 
-                  class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200" 
-                  :class="periodoVentas === '7' ? 'bg-white text-neutral-900 shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'">
+                  class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200 bg-white" 
+                  :style="periodoVentas === '7' ? 'background-color: rgb(var(--color-primary))' : ''"
+                  :class="periodoVentas === '7' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'">
                   7 Días
                 </button>
                 <button @click="periodoVentas = '30'" 
-                  class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200" 
-                  :class="periodoVentas === '30' ? 'bg-white text-neutral-900 shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'">
+                  class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200 bg-white" 
+                  :style="periodoVentas === '30' ? 'background-color: rgb(var(--color-primary))' : ''"
+                  :class="periodoVentas === '30' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'">
                   30 Días
                 </button>
               </div>
@@ -296,18 +298,18 @@
             </button>
             <div class="flex gap-2 ml-auto p-1 bg-neutral-100 rounded-lg">
               <button @click="setPeriodo('hoy')" class="px-3 py-1 rounded-md text-xs font-medium transition-all"
-                :class="periodoReporte === 'hoy' ? 'bg-white shadow-sm scale-105' : 'text-white-500 hover:text-white-700'"
-                :style="periodoReporte === 'hoy' ? 'color: rgb(var(--color-primary))' : ''">
+                :class="periodoReporte === 'hoy' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700 bg-white'"
+                :style="periodoReporte === 'hoy' ? 'background-color: rgb(var(--color-primary))' : ''">
                 Hoy
               </button>
               <button @click="setPeriodo('semana')" class="px-3 py-1 rounded-md text-xs font-medium transition-all"
-                :class="periodoReporte === 'semana' ? 'bg-white shadow-sm scale-105' : 'text-white-500 hover:text-white-700'"
-                :style="periodoReporte === 'semana' ? 'color: rgb(var(--color-primary))' : ''">
+                :class="periodoReporte === 'semana' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700 bg-white'"
+                :style="periodoReporte === 'semana' ? 'background-color: rgb(var(--color-primary))' : ''">
                 Semana
               </button>
               <button @click="setPeriodo('mes')" class="px-3 py-1 rounded-md text-xs font-medium transition-all"
-                :class="periodoReporte === 'mes' ? 'bg-white shadow-sm scale-105' : 'text-white-500 hover:text-white-700'"
-                :style="periodoReporte === 'mes' ? 'color: rgb(var(--color-primary))' : ''">
+                :class="periodoReporte === 'mes' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700 bg-white'"
+                :style="periodoReporte === 'mes' ? 'background-color: rgb(var(--color-primary))' : ''">
                 Mes
               </button>
             </div>
@@ -492,6 +494,82 @@ const fechaInicio = ref('')
 const fechaFin = ref(new Date().toISOString().split('T')[0])
 const cargando = ref(false)
 const periodoVentas = ref('30')
+
+// Reports section
+const periodoReporte = ref('hoy')
+const reportes = ref(null)
+const resumen = ref({ total_ventas: 0, num_tickets: 0, productos_vendidos: 0, ganancia_neta: 0 })
+const stock_bajo = ref([])
+const top_productos = ref([])
+const ticketPromedioReporte = computed(() => {
+  const t = resumen.value?.num_tickets || 0
+  return t > 0 ? resumen.value.total_ventas / t : 0
+})
+const chartData = ref({ daily: { labels: [], datasets: [] }, metodos: { labels: [], datasets: [] }, categorias: { labels: [], datasets: [] } })
+const chartOptions = { responsive: true, maintainAspectRatio: false }
+const chartOptionsDoughnut = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+
+const setPeriodo = (periodo) => {
+  periodoReporte.value = periodo
+  const hoy = new Date()
+  fechaFin.value = hoy.toISOString().split('T')[0]
+  if (periodo === 'hoy') {
+    fechaInicio.value = hoy.toISOString().split('T')[0]
+  } else if (periodo === 'semana') {
+    const inicio = new Date(hoy)
+    inicio.setDate(hoy.getDate() - 7)
+    fechaInicio.value = inicio.toISOString().split('T')[0]
+  } else {
+    const inicio = new Date(hoy)
+    inicio.setDate(hoy.getDate() - 30)
+    fechaInicio.value = inicio.toISOString().split('T')[0]
+  }
+}
+
+const cargarReportes = async () => {
+  cargando.value = true
+  try {
+    const { data } = await api.get('/ventas/reportes', {
+      params: { fecha_inicio: fechaInicio.value, fecha_fin: fechaFin.value }
+    })
+    reportes.value = data
+    resumen.value = data.resumen || { total_ventas: 0, num_tickets: 0, productos_vendidos: 0, ganancia_neta: 0 }
+    stock_bajo.value = data.stock_bajo || []
+    top_productos.value = data.top_productos || []
+    chartData.value = {
+      daily: {
+        labels: (data.ventas_diarias || []).map(d => d.fecha?.split('T')[0] || ''),
+        datasets: [{ label: 'Ventas', data: (data.ventas_diarias || []).map(d => d.total || 0) }]
+      },
+      metodos: {
+        labels: (data.metodos || []).map(m => m.metodo),
+        datasets: [{ data: (data.metodos || []).map(m => m.total) }]
+      },
+      categorias: {
+        labels: (data.categorias || []).map(c => c.categoria),
+        datasets: [{ data: (data.categorias || []).map(c => c.total) }]
+      }
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    cargando.value = false
+  }
+}
+
+const exportarExcel = () => {
+  const XLSX = { utils: { aoa_to_sheet: () => ({}), book_new: () => ({}), book_append_sheet: () => {} }, writeFile: () => {} }
+  try { import('xlsx').then(XLSX => {
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.aoa_to_sheet([['Concepto', 'Valor'], ['Total Ventas', resumen.value?.total_ventas || 0], ['Tickets', resumen.value?.num_tickets || 0]])
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte')
+    XLSX.writeFile(wb, `reporte_${fechaInicio.value}_${fechaFin.value}.xlsx`)
+  }) } catch {}
+}
+
+const exportarPDF = () => {
+  window.print()
+}
 
 const round = (num, decimals = 2) => {
   const n = Number(num)
