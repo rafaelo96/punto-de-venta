@@ -62,14 +62,14 @@ router.put('/', async (req, res) => {
     
     if (configs.nombre_negocio) {
       await query(
-        'UPDATE negocios SET nombre = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        'UPDATE negocios SET nombre = $1 WHERE id = $2',
         [configs.nombre_negocio, req.negocioId]
       )
     }
     
     if (configs.color_principal) {
       await query(
-        'UPDATE negocios SET color_principal = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        'UPDATE negocios SET color_principal = $1 WHERE id = $2',
         [configs.color_principal, req.negocioId]
       )
     }
@@ -107,7 +107,7 @@ router.post('/logo', upload.single('logo'), async (req, res) => {
     console.log('Logo path to save:', logoPath)
     
     await query(
-      'UPDATE negocios SET logo = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      'UPDATE negocios SET logo = $1 WHERE id = $2',
       [logoPath, req.negocioId]
     )
     
