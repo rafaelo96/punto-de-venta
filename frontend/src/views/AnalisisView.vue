@@ -85,7 +85,7 @@
               <span v-if="comparacionVentasHoy" 
                 class="text-[10px] font-black px-2 py-1 rounded-md" 
                 :class="comparacionVentasHoy > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
-                {{ comparacionVentasHoy > 0 ? '↑' : '↓' }} {{ Math.abs(comparacionVentasHoy) }}%
+                {{ comparacionVentasHoy > 0 ? '↑' : '↓' }} {{ round(Math.abs(comparacionVentasHoy), 1) }}%
               </span>
             </div>
             <p class="text-3xl font-black text-neutral-900">${{ round(ventasHoy) }}</p>
@@ -104,11 +104,11 @@
               <span v-if="comparacionTickets" 
                 class="text-[10px] font-black px-2 py-1 rounded-md" 
                 :class="comparacionTickets > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
-                {{ comparacionTickets > 0 ? '↑' : '↓' }} {{ Math.abs(comparacionTickets) }}
+                {{ comparacionTickets > 0 ? '↑' : '↓' }} {{ round(Math.abs(comparacionTickets), 1) }}%
               </span>
             </div>
-            <p class="text-3xl font-black text-neutral-900">{{ ticketsHoy }}</p>
-            <p class="text-xs text-neutral-400 mt-2 font-medium">vs semana pasada: {{ ticketsSemanaPasada }}</p>
+            <p class="text-3xl font-black text-neutral-900">{{ Math.round(ticketsHoy) }}</p>
+            <p class="text-xs text-neutral-400 mt-2 font-medium">vs semana pasada: {{ Math.round(ticketsSemanaPasada) }}</p>
           </div>
   
           <div class="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
