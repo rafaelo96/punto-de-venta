@@ -186,18 +186,18 @@
 
     <!-- Modal Cancelar -->
     <div v-if="showCancelModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="showCancelModal = false">
-      <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-        <h3 class="text-lg font-bold text-neutral-900 mb-4">Cancelar Venta #{{ ventaSeleccionada?.id }}</h3>
-        <p class="text-sm text-neutral-600 mb-4">Se restaurará el stock de los productos. Esta acción no se puede deshacer.</p>
+      <div class="bg-white dark:bg-[rgb(var(--surface-100))] rounded-2xl w-full max-w-md p-6 shadow-2xl border border-[rgb(var(--neutral-200))]">
+        <h3 class="text-lg font-bold text-[rgb(var(--neutral-900))] mb-4">Cancelar Venta #{{ ventaSeleccionada?.id }}</h3>
+        <p class="text-sm text-[rgb(var(--neutral-500))] mb-4">Se restaurará el stock de los productos. Esta acción no se puede deshacer.</p>
         <textarea v-model="motivoCancelacion" placeholder="Motivo de la cancelación (requerido)"
-          class="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none text-sm"
+          class="w-full px-4 py-3 rounded-xl border border-[rgb(var(--neutral-200))] bg-[rgb(var(--surface-50))] text-[rgb(var(--neutral-900))] focus:outline-none focus:ring-2 focus:ring-red-500 resize-none text-sm placeholder:text-[rgb(var(--neutral-400))]"
           rows="3"></textarea>
         <div class="flex gap-3 mt-5">
-          <button @click="showCancelModal = false" class="flex-1 py-3 rounded-xl border border-neutral-200 text-neutral-600 font-semibold text-sm hover:bg-neutral-50">
+          <button @click="showCancelModal = false" class="flex-1 py-2.5 rounded-xl text-white font-semibold text-xs transition-all">
             Volver
           </button>
           <button @click="cancelarVenta" :disabled="!motivoCancelacion.trim() || cancelando"
-            class="flex-1 py-3 rounded-xl text-white font-semibold text-sm transition-all"
+            class="flex-1 py-2.5 rounded-xl text-white font-semibold text-xs transition-all"
             :class="motivoCancelacion.trim() && !cancelando ? 'bg-red-500 hover:bg-red-600' : 'bg-red-300 cursor-not-allowed'">
             {{ cancelando ? 'Cancelando...' : 'Confirmar Cancelación' }}
           </button>
