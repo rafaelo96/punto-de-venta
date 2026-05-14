@@ -80,12 +80,15 @@
               </div>
               <div class="flex items-center gap-6">
                 <div class="text-right">
-                  <p class="font-bold" :style="{ color: 'rgb(var(--color-primary))' }">${{ formatNumber(venta.total) }}</p>
-                  <p class="text-xs uppercase text-[rgb(var(--neutral-500))]">{{ venta.metodo_pago }}</p>
+                  <p class="font-bold" :style="{ color: venta.status === 'cancelada' ? '#ef4444' : 'rgb(var(--color-primary))' }">${{ formatNumber(venta.total) }}</p>
+                  <span v-if="venta.status === 'cancelada'" class="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-md">CANCELADA</span>
+                  <p v-else class="text-xs uppercase text-[rgb(var(--neutral-500))]">{{ venta.metodo_pago }}</p>
                 </div>
-                <button @click.stop="reimprimir(venta)" class="p-2 rounded-xl hover:bg-[rgb(var(--neutral-200))] transition-colors bg-white">
-                  <Printer class="w-5 h-5"  style="color: rgb(var(--color-primary));"/>
-                </button>
+                <div class="flex items-center gap-2">
+                  <button @click.stop="reimprimir(venta)" class="p-2 rounded-xl hover:bg-[rgb(var(--neutral-200))] transition-colors bg-white">
+                    <Printer class="w-5 h-5" style="color: rgb(var(--color-primary));"/>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -141,6 +144,10 @@
             <span class="text-[rgb(var(--neutral-500))]">Método de pago</span>
             <span class="uppercase text-[rgb(var(--neutral-900))]">{{ ventaSeleccionada.metodo_pago }}</span>
           </div>
+          <div v-if="ventaSeleccionada.status === 'cancelada'" class="flex justify-between text-sm">
+            <span class="text-[rgb(var(--neutral-500))]">Estado</span>
+            <span class="font-bold text-red-500">CANCELADA</span>
+          </div>
           
           <hr class="border-[rgb(var(--neutral-200))]" />
           
@@ -162,12 +169,38 @@
           </div>
           
            <div class="flex gap-2 pt-4">
-             <button @click="reimprimir(ventaSeleccionada)" class="btn flex-1 flex items-center justify-center gap-2"
-               style="background-color: rgb(var(--color-primary)); color: white;">
-               <Printer class="w-5 h-5" />
-               Reimprimir
-             </button>
+              <button @click="reimprimir(ventaSeleccionada)" class="btn flex-1 flex items-center justify-center gap-2"
+                style="background-color: rgb(var(--color-primary)); color: white;">
+                <Printer class="w-5 h-5" />
+                Reimprimir
+              </button>
+              <button v-if="ventaSeleccionada.status !== 'cancelada'" @click="showCancelModal = true"
+                class="btn flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white">
+                <X class="w-5 h-5" />
+                Cancelar
+              </button>
            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Cancelar -->
+    <div v-if="showCancelModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="showCancelModal = false">
+      <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+        <h3 class="text-lg font-bold text-neutral-900 mb-4">Cancelar Venta #{{ ventaSeleccionada?.id }}</h3>
+        <p class="text-sm text-neutral-600 mb-4">Se restaurará el stock de los productos. Esta acción no se puede deshacer.</p>
+        <textarea v-model="motivoCancelacion" placeholder="Motivo de la cancelación (requerido)"
+          class="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none text-sm"
+          rows="3"></textarea>
+        <div class="flex gap-3 mt-5">
+          <button @click="showCancelModal = false" class="flex-1 py-3 rounded-xl border border-neutral-200 text-neutral-600 font-semibold text-sm hover:bg-neutral-50">
+            Volver
+          </button>
+          <button @click="cancelarVenta" :disabled="!motivoCancelacion.trim() || cancelando"
+            class="flex-1 py-3 rounded-xl text-white font-semibold text-sm transition-all"
+            :class="motivoCancelacion.trim() && !cancelando ? 'bg-red-500 hover:bg-red-600' : 'bg-red-300 cursor-not-allowed'">
+            {{ cancelando ? 'Cancelando...' : 'Confirmar Cancelación' }}
+          </button>
         </div>
       </div>
     </div>
@@ -177,7 +210,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { History, Search, Receipt, Printer, ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
+import { History, Search, Receipt, Printer, ChevronLeft, ChevronRight, X, AlertTriangle } from 'lucide-vue-next'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -273,6 +306,26 @@ const paginaAnterior = () => {
 const paginaSiguiente = () => {
   pagina.value++
   fetchVentas()
+}
+
+const showCancelModal = ref(false)
+const motivoCancelacion = ref('')
+const cancelando = ref(false)
+
+const cancelarVenta = async () => {
+  if (!ventaSeleccionada.value || !motivoCancelacion.value.trim()) return
+  cancelando.value = true
+  try {
+    await api.post(`/ventas/cancelar/${ventaSeleccionada.value.id}`, { motivo: motivoCancelacion.value.trim() })
+    showCancelModal.value = false
+    motivoCancelacion.value = ''
+    ventaSeleccionada.value = null
+    fetchVentas()
+  } catch (e) {
+    alert(e.response?.data?.message || 'Error al cancelar venta')
+  } finally {
+    cancelando.value = false
+  }
 }
 
 onMounted(() => {
