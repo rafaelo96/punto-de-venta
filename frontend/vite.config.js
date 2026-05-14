@@ -99,7 +99,7 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /\/api\/ventas.*/i,
+            urlPattern: /\/api\/ventas(?!\/ticket).*/i,
             handler: 'NetworkOnly',
             options: {
               cacheName: 'api-sales-cache'
