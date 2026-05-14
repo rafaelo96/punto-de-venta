@@ -74,7 +74,14 @@ app.use('/api', generalLimiter)
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
 
-app.use('/uploads', express.static(path.join(new URL('.', import.meta.url).pathname, '..', 'uploads'), {
+const uploadsDir = path.join(new URL('.', import.meta.url).pathname, '..', 'uploads')
+app.use('/uploads', express.static(uploadsDir, {
+   setHeaders: (res) => {
+     res.set('Access-Control-Allow-Origin', '*')
+     res.set('Cross-Origin-Resource-Policy', 'cross-origin')
+   }
+}))
+app.use('/api/uploads', express.static(uploadsDir, {
    setHeaders: (res) => {
      res.set('Access-Control-Allow-Origin', '*')
      res.set('Cross-Origin-Resource-Policy', 'cross-origin')
