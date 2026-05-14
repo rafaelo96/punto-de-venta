@@ -5,12 +5,14 @@ const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
 let redisClient = null
 
 export const initRedis = async () => {
+  if (!process.env.REDIS_URL) {
+    console.log('Redis not configured — skipping')
+    return null
+  }
   try {
-    redisClient = createClient({ url: REDIS_URL })
+    redisClient = createClient({ url: REDIS_URL, socket: { reconnectStrategy: false } })
     
-    redisClient.on('error', (err) => {
-      console.error('Redis Client Error:', err)
-    })
+    redisClient.on('error', () => {})
     
     redisClient.on('connect', () => {
       console.log('Redis connected')
@@ -27,8 +29,7 @@ export const initRedis = async () => {
     await redisClient.connect()
     return redisClient
   } catch (error) {
-    console.error('Failed to initialize Redis:', error)
-    // Continue without Redis in development
+    console.warn('Redis not available — running without cache')
     return null
   }
 }

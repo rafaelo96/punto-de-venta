@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useToast } from '@/composables/useToast'
 
-const baseURL = import.meta.env.VITE_API_URL || '/api'
+const baseURL = '/api'
 
 const api = axios.create({
   baseURL,

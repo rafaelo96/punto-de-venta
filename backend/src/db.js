@@ -58,15 +58,15 @@ if (process.env.DATABASE_URL) {
     console.log('Host a conectar:', hostToUse)
   }
 } else if (process.env.DB_HOST) {
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.DB_PORT === '6543'
-  console.log('Usando variables separadas (producción:', isProduction, ')...')
+  const useSSL = process.env.DB_SSL === 'true' || process.env.DB_PORT === '6543'
+  console.log('Usando variables separadas (SSL:', useSSL, ')...')
   poolConfig = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT) || 5432,
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'postgres',
-    ssl: isProduction ? { rejectUnauthorized: false, require: true } : false
+    ssl: useSSL ? { rejectUnauthorized: false, require: true } : false
   }
   console.log('Host:', process.env.DB_HOST)
 } else {
@@ -98,7 +98,13 @@ pool.query('SELECT 1')
 export const query = (text, params) => pool.query(text, params)
 
 export const initDB = async () => {
-  const client = await pool.connect()
+  let client
+  try {
+    client = await pool.connect()
+  } catch (error) {
+    console.error('Error connecting to database:', error)
+    return
+  }
   try {
     const existingNegocio = await client.query('SELECT COUNT(*) FROM negocios')
      let negocioId = null
@@ -166,12 +172,10 @@ const catMap = {}
           `, [negocioId, p[0], p[1], catMap[p[2]], p[3], p[4], p[5]])
         }
          } else {
-       // Get existing business ID for admin user creation
        const negocioResult = await client.query('SELECT id FROM negocios LIMIT 1')
        negocioId = negocioResult.rows[0].id
      }
 
-     // Create initial admin user if no users exist
      const existingUsers = await client.query('SELECT COUNT(*) FROM usuarios')
      if (parseInt(existingUsers.rows[0].count) === 0) {
        const bcrypt = await import('bcryptjs')
@@ -186,6 +190,6 @@ const catMap = {}
   } catch (error) {
     console.error('Error initializing database:', error)
   } finally {
-    client.release()
+    if (client) client.release()
   }
 }

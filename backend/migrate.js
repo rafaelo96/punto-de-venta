@@ -8,7 +8,7 @@ module.exports = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME || 'postgres',
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: process.env.DB_SSL === 'true' || process.env.DB_PORT === '6543' ? { rejectUnauthorized: false } : false,
   },
   migrationsDir: 'migrations',
   schema: 'public',
