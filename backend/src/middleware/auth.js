@@ -13,12 +13,14 @@ if (!JWT_SECRET) {
 }
 
 export const authenticate = async (req, res, next) => {
-  // Check Authorization header first, then query parameter (for ticket printing)
   const authHeader = req.headers.authorization
-  const token = authHeader?.replace('Bearer ', '') || req.query.token
+  const token = authHeader?.replace('Bearer ', '')
   
   if (!token) {
-    return res.status(401).json({ message: 'No autorizado: Token ausente' })
+    if (!req.query.token) {
+      return res.status(401).json({ message: 'No autorizado: Token ausente' })
+    }
+    return next()
   }
   
   try {
