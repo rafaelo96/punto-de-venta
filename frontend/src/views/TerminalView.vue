@@ -656,7 +656,8 @@ const imprimirTicket = async (ventaId) => {
       toast.error('No hay sesión activa')
       return
     }
-    const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(token)}`
+    const { data } = await api.get(`/ventas/ticket-token/${ventaId}`)
+    const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(data.token)}`
     const printWindow = window.open(url, '_blank')
     if (!printWindow) {
       toast.warning('Permite ventanas emergentes para imprimir')

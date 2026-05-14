@@ -255,12 +255,8 @@ const seleccionarVenta = async (venta) => {
 
 const reimprimir = async (venta) => {
   try {
-    const token = localStorage.getItem('pos_token')
-    if (!token) {
-      alert('No se encontró token de autenticación')
-      return
-    }
-    window.open(`/api/ventas/ticket/${venta.id}?token=${encodeURIComponent(token)}`, '_blank')
+    const { data } = await api.get(`/ventas/ticket-token/${venta.id}`)
+    window.open(`/api/ventas/ticket/${venta.id}?token=${encodeURIComponent(data.token)}`, '_blank')
   } catch (e) {
     console.error(e)
     alert('Error al reimprimir ticket')
