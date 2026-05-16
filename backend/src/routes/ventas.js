@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/auth.js'
 import validator from 'validator'
 import crypto from 'crypto'
 
+
 const router = Router()
 router.use(authenticate)
 
@@ -527,13 +528,10 @@ router.get('/ticket/:id', async (req, res) => {
     v.descuento_porcentaje = parseFloat(v.descuento_porcentaje) || 0
     
     if (format === 'escpos') {
-      // Generar comandos ESC/POS para impresora térmica
       const escpos = generateESCPOS(v, items.rows)
       res.setHeader('Content-Type', 'application/octet-stream')
       res.send(Buffer.from(escpos))
     } else {
-      // HTML optimizado para impresión térmica (80mm)
-      // Handle logo path - it might already include /uploads
       let logoUrl = ''
       if (v.negocio_logo) {
         logoUrl = v.negocio_logo.startsWith('/uploads') ? v.negocio_logo : `/uploads${v.negocio_logo}`
@@ -541,97 +539,57 @@ router.get('/ticket/:id', async (req, res) => {
 
       const escapeHtml = (str) => {
         if (!str) return ''
-        return String(str)
-          .replace(/&/g, '&')
-          .replace(/</g, '<')
-          .replace(/>/g, '>')
-          .replace(/"/g, '"')
-          .replace(/'/g, '&#039;')
+        return String(str).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"')
       }
 
-      const negocioNombre = escapeHtml(v.negocio_nombre)
-      const direccion = escapeHtml(v.direccion_negocio)
-      const telefono = escapeHtml(v.telefono_negocio)
-      const usuario = escapeHtml(v.usuario_nombre)
+      const negocioNombre = escapeHtml(v.negocio_nombre || 'Punto de Venta')
+      const direccion = escapeHtml(v.direccion_negocio || '')
+      const telefono = escapeHtml(v.telefono_negocio || '')
+      const usuario = escapeHtml(v.usuario_nombre || '-')
+      const fecha = new Date(v.created_at).toLocaleString('es-MX')
+      const itemsHtml = items.rows.map(item => {
+        const p = parseFloat(item.precio_unitario) || 0
+        const q = parseInt(item.cantidad) || 0
+        const nombre = escapeHtml(item.producto_nombre || '')
+        return `<tr><td>${q}x ${nombre}</td><td style="text-align:right">$${(p * q).toFixed(2)}</td></tr>`
+      }).join('')
+      const descHtml = v.descuento_porcentaje > 0 ? `<tr><td>Descuento: ${v.descuento_porcentaje}%</td><td></td></tr>` : ''
+      const cambioHtml = v.metodo_pago === 'efectivo'
+        ? `<tr><td>Efectivo: $${parseFloat(v.efectivo).toFixed(2)}</td><td></td></tr><tr><td>Cambio: $${parseFloat(v.cambio).toFixed(2)}</td><td></td></tr>`
+        : ''
 
       let html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Ticket #${v.id}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; }
-    @media print {
-      @page { size: 80mm auto; margin: 0; }
-      body { width: 80mm; padding: 5mm; font-size: 11px; line-height: 1.3; }
-    }
-    body { width: 80mm; padding: 5mm; font-size: 11px; line-height: 1.3; }
-    .header { text-align: center; margin-bottom: 10px; }
-    .logo { max-width: 60mm; max-height: 20mm; object-fit: contain; margin-bottom: 5px; }
-    h1 { font-size: 14px; font-weight: bold; margin-bottom: 3px; }
-    .info { font-size: 10px; color: #333; margin-bottom: 5px; }
-    .divider { border-bottom: 1px dashed #000; margin: 8px 0; }
-    .item { display: flex; justify-content: space-between; margin: 3px 0; }
-    .item-name { flex: 1; font-size: 10px; }
-    .item-qty { margin-right: 5px; }
-    .item-price { white-space: nowrap; font-size: 10px; }
-    .total { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-top: 8px; border-top: 1px solid #000; padding-top: 8px; }
-    .footer { text-align: center; font-size: 9px; color: #666; margin-top: 15px; }
-    .status-cancelled { color: #dc2626; font-weight: bold; }
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .mt-5 { margin-top: 5px; }
-    .mb-5 { margin-bottom: 5px; }
-  </style>
-</head>
-<body>
-  <div class="header">
-    ${logoUrl ? `<img src="${logoUrl}" class="logo" />` : ''}
-    <h1>${negocioNombre || 'Punto de Venta'}</h1>
-    ${direccion ? `<p class="info">${direccion}</p>` : ''}
-    ${telefono ? `<p class="info">${telefono}</p>` : ''}
-  </div>
-  <div class="divider"></div>
-  <p><strong>Ticket #${v.id}</strong></p>
-  <p class="info">${new Date(v.created_at).toLocaleString('es-MX')}</p>
-  <p class="info">Cajero: ${usuario || '-'}</p>
-  ${v.status === 'cancelada' ? '<p class="status-cancelled"><strong>*** CANCELADA ***</strong></p>' : ''}
-  <div class="divider"></div>`
-    
-    for (const item of items.rows) {
-      const precio = parseFloat(item.precio_unitario) || 0
-      const cantidad = parseInt(item.cantidad) || 0
-      html += `
-    <div class="item">
-      <span class="item-name"><span class="item-qty">${cantidad}x</span> ${escapeHtml(item.producto_nombre)}</span>
-      <span class="item-price">$${(precio * cantidad).toFixed(2)}</span>
-    </div>`
-    }
-    
-    if (v.descuento_porcentaje > 0) {
-      html += `<p class="info">Descuento: ${v.descuento_porcentaje}%</p>`
-    }
-    
-    html += `<div class="divider"></div>
-    <div class="total">
-      <span>TOTAL</span>
-      <span>$${v.total.toFixed(2)}</span>
-    </div>
-    <p class="mt-5 info">Método: ${v.metodo_pago.toUpperCase()}</p>
-    ${v.metodo_pago === 'efectivo' ? `<p class="info">Efectivo: $${parseFloat(v.efectivo).toFixed(2)}</p><p class="info">Cambio: $${parseFloat(v.cambio).toFixed(2)}</p>` : ''}
-    <div class="footer">
-      <p>*** Gracias por su compra ***</p>
-      <p>${new Date().getFullYear()} - POS System</p>
-    </div>
-    <script>
-      window.onload = function() {
-        setTimeout(function() {
-          window.print();
-        }, 500);
-      }
-    </script>
-  </body>
-</html>`
+<html><head><meta charset="UTF-8"><title>Ticket #${v.id}</title>
+<style>
+*{margin:0;padding:0;font-family:'Courier New',monospace;font-size:12px;line-height:1.4}
+@media print{@page{size:80mm auto;margin:0}body{width:72mm;padding:2mm}}
+body{width:72mm;padding:2mm;margin:0;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.c{text-align:center}.b{font-weight:bold}
+table{width:100%;border-collapse:collapse}td{padding:2px 0}
+.d{border-top:1px dashed #999;margin:4px 0}
+</style></head><body>
+<div class="c">
+${logoUrl ? `<img src="${logoUrl}" style="max-width:50mm;max-height:15mm;margin-bottom:4px" />` : ''}
+<div class="b">${negocioNombre}</div>
+${direccion ? `<div>${direccion}</div>` : ''}
+${telefono ? `<div>${telefono}</div>` : ''}
+</div>
+<div class="d"></div>
+Ticket #${v.id}<br/>
+${fecha}<br/>
+Cajero: ${usuario}
+${v.status === 'cancelada' ? '<br/><span class="b" style="color:red">*** CANCELADA ***</span>' : ''}
+<div class="d"></div>
+<table>${itemsHtml}${descHtml}</table>
+<div class="d"></div>
+<table><tr><td class="b">TOTAL</td><td class="b" style="text-align:right">$${v.total.toFixed(2)}</td></tr></table>
+Metodo: ${v.metodo_pago.toUpperCase()}${cambioHtml}
+<div class="c" style="margin-top:10px">
+*** Gracias por su compra ***<br/>
+${new Date().getFullYear()} - POS System
+</div>
+<script>window.onload=function(){setTimeout(function(){window.print()},500)}</script>
+</body></html>`
       
       res.send(html)
     }
@@ -640,20 +598,14 @@ router.get('/ticket/:id', async (req, res) => {
   }
 })
 
-// Función para generar comandos ESC/POS
 function generateESCPOS(venta, items) {
   const ESC = 0x1B
   const GS = 0x1D
   const LF = 0x0A
-  const SPACES = ' '.repeat(48)
-  
   let cmds = []
   
-  // Inicializar impresora
-  cmds.push([ESC, 0x40]) // Reset
-  cmds.push([ESC, 0x61, 0x01]) // Centrar texto
-  
-  // Logo (si existe, requiere comandos específicos de la impresora)
+  cmds.push([ESC, 0x40])
+  cmds.push([ESC, 0x61, 0x01])
   
   // Encabezado
   cmds.push(stringToBytes(venta.negocio_nombre || 'Punto de Venta'))
