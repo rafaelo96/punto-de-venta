@@ -1,100 +1,104 @@
 <template>
-  <div class="h-full flex flex-col lg:flex-row overflow-hidden bg-gradient-to-br from-neutral-50 to-neutral-100">
+  <div class="h-full flex flex-col lg:flex-row overflow-hidden bg-[rgb(var(--surface-50))]">
     <div class="flex-1 flex flex-col min-w-0 h-full relative">
-      <header class="bg-white/90 glass border-b border-neutral-200/50 p-5 flex-shrink-0 z-10">
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center gap-4">
+      <header class="bg-[rgb(var(--surface-100))] border-b border-[rgb(var(--neutral-200))] px-4 py-3 flex-shrink-0 z-10">
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
             <div class="relative group flex-1">
-              <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-hover:text-primary transition-colors"
+              <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-neutral-400 transition-colors"
                 :style="{ color: 'rgb(var(--color-primary))' }" />
               <input
                 ref="searchInput"
                 v-model="searchQuery"
                 type="text"
-                placeholder="Buscar producto (Ctrl+B)"
-                class="w-full pl-12 pr-4 py-3.5 bg-white border border-neutral-200 rounded-2xl shadow-soft focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all hover:border-neutral-300 text-sm lg:text-base"
+                placeholder="Buscar producto"
+                class="w-full pl-10 pr-4 py-3 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] rounded-lg shadow-none focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all hover:border-[rgb(var(--neutral-300))] text-sm"
                 :style="{ '--tw-ring-color': `rgb(var(--color-primary))` }"
                 @input="handleSearch"
                 @keydown="handleSearchKeydown"
               />
             </div>
-            <div class="flex items-center gap-1 p-1.5 rounded-xl">
-             <button @click="cambiarVista('cards')" class="p-2.5 rounded-xl transition-all duration-300 hover-lift"
-               :class="vista === 'cards' ? 'btn' : 'bg-white text-[rgb(var(--color-primary))] border border-neutral-200'"
+            <div class="flex items-center gap-1 p-1 rounded-lg bg-[rgb(var(--surface-200))] border border-[rgb(var(--neutral-200))]">
+             <button @click="cambiarVista('cards')" class="p-2 rounded-md transition-all duration-200 shadow-none"
+               :class="vista === 'cards' ? '' : 'bg-transparent text-[rgb(var(--neutral-600))] hover:bg-[rgb(var(--surface-100))]'"
                :style="vista === 'cards' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
-               title="Vista tarjetas (Ctrl+1)">
-               <LayoutGrid class="w-5 h-5" />
+               title="Vista tarjetas">
+               <LayoutGrid class="w-[18px] h-[18px]" />
              </button>
-             <button @click="cambiarVista('lista')" class="p-2.5 rounded-xl transition-all duration-300 hover-lift"
-               :class="vista === 'lista' ? 'btn' : 'bg-white text-[rgb(var(--color-primary))] border border-neutral-200'"
+             <button @click="cambiarVista('lista')" class="p-2 rounded-md transition-all duration-200 shadow-none"
+               :class="vista === 'lista' ? '' : 'bg-transparent text-[rgb(var(--neutral-600))] hover:bg-[rgb(var(--surface-100))]'"
                :style="vista === 'lista' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}"
-               title="Vista lista (Ctrl+2)">
-               <List class="w-5 h-5" />
+               title="Vista lista">
+               <List class="w-[18px] h-[18px]" />
              </button>
             </div>
           </div>
 
           <div class="flex flex-wrap gap-2">
-             <button @click="categoriaSeleccionada = 'todos'" class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 hover-lift"
-               :class="categoriaSeleccionada === 'todos' ? 'shadow-lg scale-[1.02]' : 'bg-white text-[rgb(var(--color-primary))] hover:bg-neutral-50 border border-neutral-200'"
-               :style="categoriaSeleccionada === 'todos' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' } : {}">
+             <button @click="categoriaSeleccionada = 'todos'" class="px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 shadow-none"
+               :class="categoriaSeleccionada === 'todos' ? '' : 'bg-[rgb(var(--surface-50))] text-[rgb(var(--neutral-700))] hover:bg-[rgb(var(--surface-200))] border border-[rgb(var(--neutral-200))]'"
+               :style="categoriaSeleccionada === 'todos' ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}">
                <LayoutGrid class="w-4 h-4" /> Todos
              </button>
              <button v-for="cat in categorias" :key="cat.id" @click="categoriaSeleccionada = cat.id"
-               class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 hover-lift"
-               :class="categoriaSeleccionada === cat.id ? 'shadow-lg scale-[1.02]' : 'bg-white text-[rgb(var(--color-primary))] hover:bg-neutral-50 border border-neutral-200'"
-               :style="categoriaSeleccionada === cat.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' } : {}">
+               class="px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 shadow-none"
+               :class="categoriaSeleccionada === cat.id ? '' : 'bg-[rgb(var(--surface-50))] text-[rgb(var(--neutral-700))] hover:bg-[rgb(var(--surface-200))] border border-[rgb(var(--neutral-200))]'"
+               :style="categoriaSeleccionada === cat.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white' } : {}">
                <Tag class="w-4 h-4" /> {{ cat.nombre }}
              </button>
           </div>
         </div>
       </header>
 
-      <div class="flex-1 overflow-auto p-6">
+      <div class="flex-1 overflow-auto p-4 lg:p-5">
         <div v-if="loading" class="flex items-center justify-center h-full min-h-0">
           <div class="spinner w-10 h-10" :style="{ borderLeftColor: `rgb(var(--color-primary))` }"></div>
         </div>
 
         <div v-else-if="productosFiltrados.length === 0" class="flex flex-col items-center justify-center h-full min-h-0 text-neutral-400 animate-fade-in">
-          <Package class="w-20 h-20 mb-4 text-neutral-200" />
-          <p class="text-lg font-medium text-neutral-500">Sin productos</p>
-          <p class="text-sm text-neutral-400">No se encontraron productos para esta búsqueda</p>
+          <div class="w-16 h-16 mb-4 rounded-lg bg-[rgb(var(--surface-100))] border border-[rgb(var(--neutral-200))] flex items-center justify-center">
+            <Package class="w-8 h-8 text-neutral-300" />
+          </div>
+          <p class="text-base font-semibold text-neutral-600">Sin productos</p>
+          <p class="text-sm text-neutral-400">No se encontraron resultados</p>
         </div>
 
-        <div v-else-if="vista === 'cards'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5 content-start">
+        <div v-else-if="vista === 'cards'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 content-start">
           <div v-for="producto in productosFiltrados" :key="producto.id"
             @click="agregarAlCarrito(producto)"
-            class="card-elevated p-4 cursor-pointer flex flex-col justify-between h-full hover-lift">
+            class="card-elevated product-card p-3 cursor-pointer flex flex-col justify-between h-full hover-lift"
+            :class="{ 'product-card-added': recentlyAddedId === producto.id }">
             <div>
-              <div class="aspect-square bg-neutral-50 rounded-2xl mb-3 flex items-center justify-center overflow-hidden relative">
-                <img v-if="producto.imagen" :src="producto.imagen" class="w-full h-full object-cover rounded-2xl" @error="producto.imagen = null" />
-                <Package v-else class="w-10 h-10 text-neutral-300" />
+              <div class="aspect-square bg-[rgb(var(--surface-50))] rounded-lg mb-3 flex items-center justify-center overflow-hidden relative border border-[rgb(var(--neutral-200))]">
+                <img v-if="producto.imagen" :src="producto.imagen" class="w-full h-full object-cover" @error="producto.imagen = null" />
+                <Package v-else class="w-8 h-8 text-neutral-300" />
               </div>
-              <h3 class="font-semibold text-neutral-800 text-sm lg:text-base leading-tight mb-2 line-clamp-2">{{ producto.nombre }}</h3>
+              <h3 class="font-semibold text-neutral-800 text-sm leading-tight mb-2 line-clamp-2">{{ producto.nombre }}</h3>
             </div>
-            <div class="flex items-end justify-between mt-3">
-              <span class="text-lg lg:text-xl font-bold" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(producto.precio_venta).toFixed(2) }}</span>
-              <span v-if="config.mostrar_stock" class="text-xs font-medium text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+            <div class="flex items-end justify-between mt-2 gap-2">
+              <span class="text-base font-bold" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(producto.precio_venta).toFixed(2) }}</span>
+              <span v-if="config.mostrar_stock" class="text-[11px] font-medium text-neutral-500 bg-[rgb(var(--surface-200))] px-2 py-1 rounded-md flex items-center gap-1.5">
                 <Archive class="w-3 h-3" /> {{ producto.stock }}
               </span>
             </div>
           </div>
         </div>
 
-        <div v-else-if="vista === 'lista'" class="space-y-3">
+        <div v-else-if="vista === 'lista'" class="space-y-2">
           <div v-for="producto in productosFiltrados" :key="producto.id"
             @click="agregarAlCarrito(producto)"
-            class="card-elevated p-4 cursor-pointer flex items-center gap-4 hover-lift">
-            <div class="w-14 h-14 bg-neutral-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+            class="card-elevated product-card p-3 cursor-pointer flex items-center gap-3 hover-lift"
+            :class="{ 'product-card-added': recentlyAddedId === producto.id }">
+            <div class="w-12 h-12 bg-[rgb(var(--surface-50))] rounded-lg border border-[rgb(var(--neutral-200))] flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img v-if="producto.imagen" :src="producto.imagen" class="w-full h-full object-cover" @error="producto.imagen = null" />
-              <Package v-else class="w-7 h-7 text-neutral-300" />
+              <Package v-else class="w-6 h-6 text-neutral-300" />
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="font-semibold text-neutral-800 text-sm truncate">{{ producto.nombre }}</h3>
               <p class="text-xs text-neutral-500">{{ producto.categoria_nombre }}</p>
             </div>
-            <div class="flex items-center gap-4">
-              <span v-if="config.mostrar_stock" class="text-xs font-medium text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-lg">
+            <div class="flex items-center gap-3">
+              <span v-if="config.mostrar_stock" class="text-[11px] font-medium text-neutral-500 bg-[rgb(var(--surface-200))] px-2 py-1 rounded-md">
                 <Archive class="w-3 h-3 inline" /> {{ producto.stock }}
               </span>
               <span class="font-bold" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(producto.precio_venta).toFixed(2) }}</span>
@@ -104,82 +108,76 @@
       </div>
     </div>
 
-    <div class="w-full lg:w-[380px] xl:w-[420px] bg-white/80 glass shadow-[0_0_40px_rgba(0,0,0,0.05)] border-t lg:border-t-0 lg:border-l border-neutral-200/50 flex flex-col h-full lg:h-auto z-20 relative">
-      <div class="p-5 border-b border-neutral-200/50 flex-shrink-0 bg-white/60 backdrop-blur-xl sticky top-0 z-10">
+    <div class="w-full lg:w-[380px] xl:w-[420px] bg-[rgb(var(--surface-100))] border-t lg:border-t-0 lg:border-l border-[rgb(var(--neutral-200))] flex flex-col h-full lg:h-auto z-20 relative">
+      <div class="p-4 border-b border-[rgb(var(--neutral-200))] flex-shrink-0 bg-[rgb(var(--surface-100))] sticky top-0 z-10">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <div class="relative">
-              <div class="absolute inset-0 blur-md opacity-40 rounded-2xl" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
-              <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg relative bg-gradient-to-br from-white/20 to-transparent" :style="{ backgroundColor: `rgb(var(--color-primary))` }">
-                <ShoppingCart class="w-6 h-6 text-white drop-shadow-md" />
-              </div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center" :style="{ backgroundColor: `rgb(var(--color-primary))` }">
+              <ShoppingCart class="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 class="text-xl font-bold text-neutral-900 leading-tight tracking-tight">Carrito</h2>
-              <p class="text-sm text-neutral-500 font-medium flex items-center gap-1.5">
+              <h2 class="text-lg font-bold text-neutral-900 leading-tight tracking-tight">Carrito</h2>
+              <p class="text-xs text-neutral-500 font-medium flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: totalItems > 0 ? `rgb(var(--color-primary))` : 'rgb(var(--neutral-300))' }"></span>
                 {{ totalItems }} artículo{{ totalItems !== 1 ? 's' : '' }}
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button v-if="!estaVacio" @click="showItemDiscountModal = true; prepareItemDiscount()"
-              class="p-2.5 bg-amber-500 text-white hover:bg-amber-600 shadow-sm hover:shadow-md rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
-              title="Aplicar descuento a item (Ctrl+D)">
-              <Percent class="w-5 h-5 group-hover:rotate-12 transition-transform" />
+            <button v-if="!estaVacio" @click="showItemDiscountModal = true; prepararItemDiscount()"
+              class="p-2 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] shadow-none rounded-lg transition-all duration-200 hover:bg-[rgb(var(--surface-200))]"
+              :style="{ color: 'rgb(var(--color-primary))' }"
+              title="Aplicar descuento">
+              <Percent class="w-[18px] h-[18px]" />
             </button>
             <button v-if="!estaVacio" @click="limpiarCarrito"
-              class="p-2.5 bg-red-500 text-white hover:bg-red-600 shadow-sm hover:shadow-md rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
-              title="Limpiar carrito (Ctrl+X)">
-              <Trash2 class="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              class="p-2 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] shadow-none rounded-lg transition-all duration-200 hover:bg-[rgb(var(--surface-200))]"
+              :style="{ color: 'rgb(var(--color-danger))' }"
+              title="Limpiar carrito">
+              <Trash2 class="w-[18px] h-[18px]" />
             </button>
           </div>
         </div>
       </div>
 
-      <div class="flex-1 overflow-auto p-5 scrollbar-hide">
+      <div class="flex-1 overflow-auto p-4 scrollbar-hide">
         <div v-if="estaVacio" class="flex flex-col items-center justify-center h-full text-neutral-400 py-12 animate-fade-in">
-          <div class="relative mb-6">
-            <div class="absolute inset-0 bg-neutral-200 blur-xl opacity-50 rounded-full animate-pulse"></div>
-            <div class="w-24 h-24 bg-white shadow-soft rounded-full flex items-center justify-center relative">
-              <ShoppingCart class="w-10 h-10 text-neutral-300" />
-            </div>
+          <div class="w-16 h-16 mb-4 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] rounded-lg flex items-center justify-center">
+            <ShoppingCart class="w-7 h-7 text-neutral-300" />
           </div>
-          <p class="text-xl font-bold text-neutral-600 mb-2">Carrito vacío</p>
-          <p class="text-sm text-neutral-400 text-center max-w-[200px] leading-relaxed">Explora nuestros productos y agrégalos aquí para comenzar.</p>
+          <p class="text-base font-semibold text-neutral-600 mb-1">Carrito vacío</p>
+          <p class="text-sm text-neutral-400 text-center max-w-[220px] leading-relaxed">Selecciona productos para iniciar la venta.</p>
         </div>
 
-        <div v-else class="space-y-4">
+        <div v-else class="space-y-2">
           <div v-for="item in items" :key="item.id"
-            class="flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm border border-neutral-100/80 shadow-sm rounded-2xl hover:shadow-md hover:border-neutral-200/60 transition-all duration-300 hover-lift group relative overflow-hidden"
-            :class="{ 'ring-2 ring-amber-400': item.descuento > 0 }">
-            <div class="absolute left-0 top-0 bottom-0 w-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-l-2xl" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
-
-            <div class="w-14 h-14 bg-neutral-50/80 rounded-xl flex items-center justify-center shadow-inner flex-shrink-0 relative overflow-hidden">
+            class="flex items-center gap-3 p-3 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] rounded-lg transition-all duration-200 group relative"
+            :style="item.descuento > 0 ? { borderColor: 'rgb(var(--color-primary))', boxShadow: '0 0 0 3px rgb(var(--color-primary) / 0.08)' } : {}">
+            <div class="w-12 h-12 bg-[rgb(var(--surface-100))] rounded-md flex items-center justify-center flex-shrink-0 relative overflow-hidden border border-[rgb(var(--neutral-200))]">
               <img v-if="item.imagen" :src="item.imagen" class="w-full h-full object-cover" @error="item.imagen = null" />
-              <Package v-else class="w-6 h-6 text-neutral-300 group-hover:text-neutral-400 transition-colors" />
+              <Package v-else class="w-5 h-5 text-neutral-300 group-hover:text-neutral-400 transition-colors" />
             </div>
 
             <div class="flex-1 min-w-0 py-1">
-              <h4 class="font-bold text-neutral-800 text-sm truncate">{{ item.nombre }}</h4>
+              <h4 class="font-semibold text-neutral-800 text-sm truncate">{{ item.nombre }}</h4>
               <p class="text-xs font-medium text-neutral-500 mt-1">
                 ${{ Number(item.precioOriginal || item.precio).toFixed(2) }} c/u
-                <span v-if="item.descuento > 0" class="text-amber-600 font-bold ml-1">-{{ item.descuento }}%</span>
+                <span v-if="item.descuento > 0" class="font-bold ml-1" :style="{ color: 'rgb(var(--color-primary))' }">-{{ item.descuento }}%</span>
               </p>
             </div>
 
-            <div class="flex flex-col items-end gap-3">
+            <div class="flex flex-col items-end gap-2">
               <p class="font-bold text-neutral-900 text-base leading-none">${{ Number(item.precio * item.cantidad * (1 - item.descuento / 100)).toFixed(2) }}</p>
 
-              <div class="flex items-center gap-1.5 bg-neutral-50/80 border border-neutral-100 p-1 rounded-xl shadow-inner">
+              <div class="flex items-center gap-1 bg-[rgb(var(--surface-100))] border border-[rgb(var(--neutral-200))] p-1 rounded-md">
                 <button @click="actualizarCantidad(item.id, item.cantidad - 1)"
-                  class="p-2 bg-white shadow-sm rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-all active:scale-95"
+                  class="p-1.5 bg-transparent shadow-none rounded flex items-center justify-center hover:bg-[rgb(var(--surface-200))] transition-all active:scale-95"
                   :style="{ color: colorPrincipal }">
                   <Minus :color="colorPrincipal" class="w-3.5 h-3.5" />
                 </button>
-                <span class="w-6 text-center font-bold text-neutral-700 text-sm">{{ item.cantidad }}</span>
+                <span class="w-7 text-center font-bold text-neutral-700 text-sm tabular-nums">{{ item.cantidad }}</span>
                 <button @click="actualizarCantidad(item.id, item.cantidad + 1)"
-                  class="p-2 bg-white shadow-sm rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-all active:scale-95"
+                  class="p-1.5 bg-transparent shadow-none rounded flex items-center justify-center hover:bg-[rgb(var(--surface-200))] transition-all active:scale-95"
                   :style="{ color: colorPrincipal }">
                   <Plus :color="colorPrincipal" class="w-3.5 h-3.5" />
                 </button>
@@ -187,16 +185,16 @@
             </div>
 
               <button @click.stop="eliminarDelCarrito(item.id)"
-                class="absolute p-4 -top-2 -right-2 bg-white border border-neutral-100 shadow-md rounded-full flex items-center justify-center hover:bg-red-50 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                class="absolute p-1.5 top-2 right-2 bg-[rgb(var(--surface-100))] border border-[rgb(var(--neutral-200))] shadow-none rounded-md flex items-center justify-center hover:bg-[rgb(var(--surface-200))] opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
                 :style="{ color: 'rgb(var(--color-danger))' }">
-                <X class="w-4 h-4" />
+                <X class="w-3.5 h-3.5" />
               </button>
           </div>
         </div>
       </div>
 
-      <div v-if="!estaVacio" class="p-6 border-t border-neutral-200/50 bg-white/80 backdrop-blur-xl relative z-10 before:absolute before:inset-0 before:bg-gradient-to-t before:from-white before:to-transparent before:-z-10 before:-top-6 before:h-6">
-        <div class="space-y-3.5 mb-6">
+      <div v-if="!estaVacio" class="p-4 border-t border-[rgb(var(--neutral-200))] bg-[rgb(var(--surface-100))] relative z-10">
+        <div class="space-y-3 mb-5">
           <div class="flex justify-between text-sm font-medium items-center">
             <span class="text-neutral-500 flex items-center gap-2">Subtotal</span>
             <span class="text-neutral-900 font-semibold">${{ Number(subtotal).toFixed(2) }}</span>
@@ -208,72 +206,71 @@
             </span>
             <div class="relative">
               <input v-model.number="descuentoInput" type="number" min="0" max="100" placeholder="0"
-                class="w-20 pl-3 pr-8 py-2 border border-neutral-200 bg-neutral-50/50 rounded-xl text-right text-sm font-bold focus:ring-2 focus:bg-white focus:outline-none transition-all shadow-inner"
+                class="w-20 pl-3 pr-8 py-2 border border-[rgb(var(--neutral-200))] bg-[rgb(var(--surface-50))] rounded-lg text-right text-sm font-bold focus:ring-2 focus:bg-[rgb(var(--surface-100))] focus:outline-none transition-all shadow-none"
                 :style="{ '--tw-ring-color': `rgb(var(--color-primary))` }"
                 @change="aplicarDescuento(descuentoInput)" />
               <Percent class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
             </div>
           </div>
 
-          <div v-if="descuentoGlobal > 0" class="flex justify-between text-sm font-medium text-emerald-600 animate-fade-in bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/50">
+          <div v-if="descuentoGlobal > 0" class="flex justify-between text-sm font-medium animate-fade-in p-2.5 rounded-lg border"
+            :style="{ backgroundColor: 'rgb(var(--color-primary) / 0.08)', borderColor: 'rgb(var(--color-primary) / 0.18)', color: 'rgb(var(--color-primary))' }">
             <span class="flex items-center gap-2"><Tag class="w-4 h-4" /> Descuento ({{ descuentoGlobal }}%)</span>
             <span class="font-bold">-${{ Number(montoDescuento).toFixed(2) }}</span>
           </div>
         </div>
 
-        <div class="flex justify-between items-end pt-5 border-t border-neutral-200/60 mb-6">
+        <div class="flex justify-between items-end pt-4 border-t border-[rgb(var(--neutral-200))] mb-5">
           <div class="flex flex-col">
             <span class="text-sm font-medium text-neutral-500 mb-1">Total a cobrar</span>
-            <span class="text-4xl font-black tracking-tight" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(total).toFixed(2) }}</span>
+            <span class="text-3xl font-black tracking-tight tabular-nums" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(total).toFixed(2) }}</span>
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="grid grid-cols-3 gap-2 mb-5">
              <button v-for="metodo in metodosPago" :key="metodo.id" @click="metodoPago = metodo.id"
-               class="py-3 px-2 rounded-2xl text-xs font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2 relative overflow-hidden group"
-               :class="metodoPago === metodo.id ? 'shadow-md scale-[1.02]' : 'bg-white border-neutral-100/80 shadow-sm text-[rgb(var(--color-primary))] hover:border-neutral-300 hover:bg-neutral-50'"
-               :style="metodoPago === metodo.id ? { backgroundColor: 'white', color: 'rgb(var(--color-primary))', borderColor: 'rgb(var(--color-primary))' } : {}">
-               <div v-if="metodoPago === metodo.id" class="absolute inset-0 opacity-10" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
-               <component :is="metodo.icon" class="w-5 h-5 transition-transform group-hover:scale-110" />
+               class="py-3 px-2 rounded-lg text-xs font-bold transition-all duration-200 flex flex-col items-center justify-center gap-1.5 border relative overflow-hidden group shadow-none"
+               :class="metodoPago === metodo.id ? '' : 'bg-[rgb(var(--surface-50))] border-[rgb(var(--neutral-200))] text-[rgb(var(--neutral-700))] hover:border-[rgb(var(--neutral-300))] hover:bg-[rgb(var(--surface-200))]'"
+               :style="metodoPago === metodo.id ? { backgroundColor: 'rgb(var(--color-primary) / 0.08)', color: 'rgb(var(--color-primary))', borderColor: 'rgb(var(--color-primary))' } : {}">
+               <component :is="metodo.icon" class="w-5 h-5" />
                {{ metodo.nombre }}
              </button>
         </div>
 
         <button @click="finalizarVenta"
-          class="w-full py-4.5 font-bold rounded-2xl transition-all duration-300 hover-lift flex items-center justify-center gap-3 text-lg shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)] relative overflow-hidden group"
+          class="w-full py-4 font-bold rounded-lg transition-all duration-200 hover-lift flex items-center justify-center gap-3 text-base shadow-none relative overflow-hidden group"
           :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }">
-          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-          <DollarSign class="w-6 h-6" />
-          <span>Cobrar Venta (Enter)</span>
+          <DollarSign class="w-5 h-5" />
+          <span>Cobrar venta</span>
         </button>
       </div>
     </div>
 
-    <div v-if="showPagoModal" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="showPagoModal = false">
-      <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-scale-in overflow-hidden">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-bold text-neutral-900 flex items-center gap-3">
-            <CreditCard class="w-7 h-7" :style="{ color: `rgb(var(--color-primary))` }" /> Cobro de Venta
+    <div v-if="showPagoModal" class="fixed inset-0 bg-neutral-900/55 flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="showPagoModal = false">
+      <div class="bg-[rgb(var(--surface-100))] rounded-xl p-6 w-full max-w-md shadow-2xl animate-scale-in overflow-hidden border border-[rgb(var(--neutral-200))]">
+        <div class="flex justify-between items-center mb-5">
+          <h3 class="text-xl font-bold text-neutral-900 flex items-center gap-3">
+            <CreditCard class="w-6 h-6" :style="{ color: `rgb(var(--color-primary))` }" /> Cobro de venta
           </h3>
-          <button @click="showPagoModal = false" class="p-2.5 rounded-xl transition-all hover-lift" :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }">
-            <X class="w-6 h-6" />
+          <button @click="showPagoModal = false" class="p-2 rounded-lg bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] shadow-none transition-all hover:bg-[rgb(var(--surface-200))]" :style="{ color: 'rgb(var(--neutral-700))' }">
+            <X class="w-5 h-5" />
           </button>
         </div>
 
-        <div class="space-y-6">
-          <div class="bg-neutral-50 rounded-2xl p-6 border border-neutral-100 text-center">
-            <p class="text-sm font-medium text-neutral-500 mb-2">Total a Cobrar</p>
-            <p class="text-5xl font-black" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(total).toFixed(2) }}</p>
+        <div class="space-y-5">
+          <div class="bg-[rgb(var(--surface-50))] rounded-lg p-5 border border-[rgb(var(--neutral-200))] text-center">
+            <p class="text-sm font-medium text-neutral-500 mb-1">Total a cobrar</p>
+            <p class="text-4xl font-black tabular-nums" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(total).toFixed(2) }}</p>
           </div>
 
           <div class="space-y-5">
             <div>
               <label class="block text-sm font-semibold text-neutral-700 mb-3">Método de Pago</label>
-              <div class="grid grid-cols-3 gap-3">
+              <div class="grid grid-cols-3 gap-2">
                  <button v-for="metodo in metodosPago" :key="metodo.id" @click="metodoPago = metodo.id; calcularCambio()"
-                   class="py-4 rounded-xl text-sm font-bold transition-all duration-300 flex flex-col items-center justify-center gap-2 border-2"
-                   :class="metodoPago === metodo.id ? 'shadow-lg' : 'bg-white border-neutral-200 text-[rgb(var(--color-primary))] hover:border-neutral-300 hover:bg-neutral-50'"
-                   :style="metodoPago === metodo.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', borderColor: 'rgb(var(--color-primary))', boxShadow: 'var(--shadow-depth-3)' } : {}">
+                   class="py-3 rounded-lg text-sm font-bold transition-all duration-200 flex flex-col items-center justify-center gap-2 border shadow-none"
+                   :class="metodoPago === metodo.id ? '' : 'bg-[rgb(var(--surface-50))] border-[rgb(var(--neutral-200))] text-[rgb(var(--neutral-700))] hover:border-[rgb(var(--neutral-300))] hover:bg-[rgb(var(--surface-200))]'"
+                   :style="metodoPago === metodo.id ? { backgroundColor: 'rgb(var(--color-primary))', color: 'white', borderColor: 'rgb(var(--color-primary))' } : {}">
                    <component :is="metodo.icon" class="w-5 h-5" /> {{ metodo.nombre }}
                  </button>
               </div>
@@ -285,43 +282,42 @@
                 <div class="relative">
                   <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-lg">$</span>
                   <input v-model.number="efectivoRecibido" type="number" step="0.01" @input="calcularCambio"
-                    class="w-full pl-10 pr-4 py-4 bg-neutral-50 border border-neutral-200 rounded-xl text-xl font-bold focus:ring-2 focus:outline-none transition-all"
+                    class="w-full pl-10 pr-4 py-3.5 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] rounded-lg text-xl font-bold focus:ring-2 focus:outline-none transition-all"
                     :style="{ '--tw-ring-color': `rgb(var(--color-primary))` }" />
                 </div>
               </div>
-              <div class="bg-primary-50 rounded-2xl p-5 border border-primary/20 flex justify-between items-center">
+              <div class="rounded-lg p-4 border flex justify-between items-center"
+                :style="{ backgroundColor: 'rgb(var(--color-primary) / 0.08)', borderColor: 'rgb(var(--color-primary) / 0.18)' }">
                 <span class="text-base font-semibold" :style="{ color: colorPrincipal }">Cambio a entregar:</span>
-                <span class="text-2xl font-black" :style="{ color: colorPrincipal }">${{ Number(cambio).toFixed(2) }}</span>
+                <span class="text-2xl font-black tabular-nums" :style="{ color: colorPrincipal }">${{ Number(cambio).toFixed(2) }}</span>
               </div>
             </div>
           </div>
 
           <button @click="confirmarPago"
-            class="w-full py-5 font-bold rounded-2xl transition-all duration-300 hover-lift flex items-center justify-center gap-3 text-lg shadow-xl"
-            :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' }">
-            <Check class="w-7 h-7" /> Confirmar Venta (Enter)
+            class="w-full py-4 font-bold rounded-lg transition-all duration-200 hover-lift flex items-center justify-center gap-3 text-base shadow-none"
+            :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }">
+            <Check class="w-5 h-5" /> Confirmar venta
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="mostrarTicket" class="fixed inset-0 bg-neutral-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="mostrarTicket = false">
-      <div class="bg-white rounded-[2rem] p-10 w-full max-w-sm text-center shadow-2xl animate-scale-in relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-3" :style="{ backgroundColor: `rgb(var(--color-primary))` }"></div>
-
-        <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 transform -rotate-3 shadow-xl" :style="{ backgroundColor: `rgb(var(--color-primary))` }">
-          <Check class="w-10 h-10 text-white" />
+    <div v-if="mostrarTicket" class="fixed inset-0 bg-neutral-900/45 flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="mostrarTicket = false">
+      <div class="bg-[rgb(var(--surface-100))] rounded-xl p-6 w-full max-w-sm text-center shadow-2xl animate-scale-in relative overflow-hidden border border-[rgb(var(--neutral-200))]">
+        <div class="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" :style="{ backgroundColor: `rgb(var(--color-primary))` }">
+          <Check class="w-8 h-8 text-white" />
         </div>
-        <h3 class="text-3xl font-black text-neutral-900 mb-3">¡Venta Exitosa!</h3>
-        <p class="text-sm font-medium text-neutral-500 flex items-center justify-center gap-2 mb-8 bg-neutral-50 w-max mx-auto px-4 py-2 rounded-xl">
+        <h3 class="text-2xl font-black text-neutral-900 mb-3">Venta exitosa</h3>
+        <p class="text-sm font-medium text-neutral-500 flex items-center justify-center gap-2 mb-6 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] w-max mx-auto px-3 py-2 rounded-lg">
           <Receipt class="w-4 h-4" /> Folio: {{ ventaActual?.folio }}
         </p>
 
-        <div class="bg-neutral-50 rounded-2xl p-6 mb-8 border border-neutral-100">
+        <div class="bg-[rgb(var(--surface-50))] rounded-lg p-5 mb-6 border border-[rgb(var(--neutral-200))]">
           <p class="text-sm text-neutral-500 font-medium mb-2">Monto Cobrado</p>
-          <p class="text-5xl font-black text-center mb-6" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(ticketData.total).toFixed(2) }}</p>
+          <p class="text-4xl font-black text-center mb-5 tabular-nums" :style="{ color: `rgb(var(--color-primary))` }">${{ Number(ticketData.total).toFixed(2) }}</p>
 
-          <div class="space-y-3 pt-5 border-t border-neutral-200">
+          <div class="space-y-3 pt-4 border-t border-[rgb(var(--neutral-200))]">
             <div class="flex justify-between text-sm font-medium text-neutral-600">
               <span class="flex items-center gap-2"><Wallet class="w-4 h-4 text-neutral-400" /> Recibido:</span>
               <span class="text-neutral-900">${{ Number(ticketData.recibido).toFixed(2) }}</span>
@@ -335,40 +331,40 @@
 
         <div class="flex gap-3">
           <button @click="imprimirTicket(ventaActual?.id)" 
-            class="flex-1 py-4 font-bold rounded-xl transition-all duration-300 hover-lift flex items-center justify-center gap-2"
-            style="background-color: rgb(34, 197, 94); color: white;">
+            class="flex-1 py-3.5 font-bold rounded-lg transition-all duration-200 hover-lift flex items-center justify-center gap-2 bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] shadow-none"
+            :style="{ color: 'rgb(var(--color-primary))' }">
             <Printer class="w-5 h-5" /> Imprimir
           </button>
           <button @click="mostrarTicket = false"
-            class="flex-1 py-4 font-bold rounded-xl transition-all duration-300 hover-lift flex items-center justify-center gap-3 shadow-xl"
-            :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white', boxShadow: 'var(--shadow-depth-3)' }">
-            <RotateCcw class="w-6 h-6" /> Siguiente
+            class="flex-1 py-3.5 font-bold rounded-lg transition-all duration-200 hover-lift flex items-center justify-center gap-3 shadow-none"
+            :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }">
+            <RotateCcw class="w-5 h-5" /> Siguiente
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="showItemDiscountModal" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="showItemDiscountModal = false">
-      <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-scale-in">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-bold text-neutral-900 flex items-center gap-3">
-            <Percent class="w-7 h-7" :style="{ color: `rgb(var(--color-primary))` }" /> Descuento por Producto
+    <div v-if="showItemDiscountModal" class="fixed inset-0 bg-neutral-900/55 flex items-center justify-center p-4 z-50 animate-fade-in" @click.self="showItemDiscountModal = false">
+      <div class="bg-[rgb(var(--surface-100))] rounded-xl p-6 w-full max-w-md shadow-2xl animate-scale-in border border-[rgb(var(--neutral-200))]">
+        <div class="flex justify-between items-center mb-5">
+          <h3 class="text-xl font-bold text-neutral-900 flex items-center gap-3">
+            <Percent class="w-6 h-6" :style="{ color: `rgb(var(--color-primary))` }" /> Descuento por producto
           </h3>
-          <button @click="showItemDiscountModal = false" class="p-2.5 rounded-xl hover:bg-neutral-100 transition-all">
-            <X class="w-6 h-6" />
+          <button @click="showItemDiscountModal = false" class="p-2 rounded-lg bg-[rgb(var(--surface-50))] border border-[rgb(var(--neutral-200))] shadow-none hover:bg-[rgb(var(--surface-200))] transition-all">
+            <X class="w-5 h-5" />
           </button>
         </div>
 
-        <div class="space-y-4 mb-6">
+        <div class="space-y-2 mb-5">
           <div v-for="item in items" :key="item.id"
-            class="flex items-center justify-between p-4 bg-neutral-50 rounded-xl border border-neutral-100">
+            class="flex items-center justify-between p-3 bg-[rgb(var(--surface-50))] rounded-lg border border-[rgb(var(--neutral-200))]">
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-neutral-800 truncate">{{ item.nombre }}</p>
               <p class="text-sm text-neutral-500">${{ Number(item.precio).toFixed(2) }} c/u</p>
             </div>
             <div class="flex items-center gap-2">
               <input v-model.number="item.descuento" type="number" min="0" max="100" placeholder="0"
-                class="w-20 px-3 py-2 border border-neutral-200 rounded-xl text-center font-bold focus:ring-2 focus:outline-none"
+                class="w-20 px-3 py-2 border border-[rgb(var(--neutral-200))] rounded-lg text-center font-bold focus:ring-2 focus:outline-none bg-[rgb(var(--surface-100))]"
                 :style="{ '--tw-ring-color': `rgb(var(--color-primary))` }" />
               <span class="text-neutral-400 font-bold">%</span>
             </div>
@@ -376,7 +372,7 @@
         </div>
 
         <button @click="showItemDiscountModal = false"
-          class="w-full py-4 font-bold rounded-2xl transition-all duration-300 hover-lift flex items-center justify-center gap-3"
+          class="w-full py-3.5 font-bold rounded-lg transition-all duration-200 hover-lift flex items-center justify-center gap-3 shadow-none"
           :style="{ backgroundColor: 'rgb(var(--color-primary))', color: 'white' }">
           <Check class="w-5 h-5" /> Aplicar Descuentos
         </button>
@@ -415,6 +411,8 @@ const efectivoRecibido = ref(0)
 const cambio = ref(0)
 const ticketData = ref({ total: 0, recibido: 0, cambio: 0, folio: '' })
 const searchInput = ref(null)
+const recentlyAddedId = ref(null)
+let addFeedbackTimer = null
 
 const colorPrincipal = computed(() => config.color_principal || '#3b82f6')
 
@@ -473,6 +471,11 @@ const handleSearchKeydown = (e) => {
 
 const agregarAlCarrito = (producto) => {
   ventasStore.agregarProducto(producto)
+  recentlyAddedId.value = producto.id
+  clearTimeout(addFeedbackTimer)
+  addFeedbackTimer = setTimeout(() => {
+    recentlyAddedId.value = null
+  }, 260)
   if (config.sonido) {
     playBeep()
   }
@@ -703,6 +706,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  clearTimeout(addFeedbackTimer)
   window.removeEventListener('keydown', handleKeyboard)
 })
 </script>
@@ -710,4 +714,14 @@ onUnmounted(() => {
 <style scoped>
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+.product-card {
+  outline: 0 solid transparent;
+}
+
+.product-card-added {
+  border-color: rgb(var(--color-primary));
+  box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.14), var(--shadow-depth-2);
+  transform: translateY(-1px) scale(0.995);
+}
 </style>

@@ -24,11 +24,11 @@
           </div>
           <div>
             <h1 class="text-2xl font-extrabold text-neutral-900 tracking-tight">
-              Centro de Inteligencia
+              Análisis
             </h1>
             <p class="text-sm text-neutral-500 font-medium flex items-center gap-2">
               <Zap class="w-3 h-3 text-amber-500" />
-              Análisis de rendimiento y métricas operativas
+              Rendimiento de ventas y métricas operativas
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@
           class="px-5 py-2 rounded-xl text-xs font-bold transition-all duration-200 bg-white hover-lift"
           :class="activeTab === 'vivo' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'"
           :style="activeTab === 'vivo' ? 'background-color: rgb(var(--color-primary))' : ''">
-          Panel en Vivo
+          Panel actual
         </button>
         <button @click="activeTab = 'historico'"
           class="px-5 py-2 rounded-xl text-xs font-bold transition-all duration-200 bg-white hover-lift"
@@ -160,17 +160,17 @@
                 <p class="text-xs text-neutral-400 font-medium mt-1">Análisis de volumen de ingresos en los últimos periodos</p>
               </div>
               <div class="flex gap-1 p-1 bg-neutral-100 rounded-xl">
-                <button @click="periodoVentas = '7'" 
+                <button @click="setPeriodoVentas('7')"
                   class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200 bg-white" 
                   :style="periodoVentas === '7' ? 'background-color: rgb(var(--color-primary))' : ''"
                   :class="periodoVentas === '7' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'">
-                  7 Días
+                  7 días
                 </button>
-                <button @click="periodoVentas = '30'" 
+                <button @click="setPeriodoVentas('30')"
                   class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200 bg-white" 
                   :style="periodoVentas === '30' ? 'background-color: rgb(var(--color-primary))' : ''"
                   :class="periodoVentas === '30' ? 'text-white shadow-sm scale-105' : 'text-neutral-500 hover:text-neutral-700'">
-                  30 Días
+                  30 días
                 </button>
               </div>
             </div>
@@ -489,9 +489,54 @@ const comparacionTickets = ref(0)
 const ticketPromedio = computed(() => ticketsHoy.value > 0 ? ventasHoy.value / ticketsHoy.value : 0)
 const margenPorcentaje = computed(() => ventasHoy.value > 0 ? Math.round((gananciaNeta.value / ventasHoy.value) * 100) / 100 : 0)
 
+const formatLocalDate = (date = new Date()) => {
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const parseLocalDate = (value) => {
+  const [year, month, day] = String(value || '').split('T')[0].split('-').map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
+}
+
+const getLastDaysRange = (days) => {
+  const end = new Date()
+  const start = new Date(end)
+  start.setDate(end.getDate() - Math.max(Number(days) || 1, 1) + 1)
+  return {
+    fecha_inicio: formatLocalDate(start),
+    fecha_fin: formatLocalDate(end)
+  }
+}
+
+const normalizeDateKey = (value) => String(value || '').split('T')[0]
+
+const fillDailySeries = (rows = [], fechaInicioValue, fechaFinValue) => {
+  const byDate = new Map(rows.map(row => [normalizeDateKey(row.fecha), row]))
+  const result = []
+  const cursor = parseLocalDate(fechaInicioValue)
+  const end = parseLocalDate(fechaFinValue)
+
+  while (cursor <= end) {
+    const key = formatLocalDate(cursor)
+    const row = byDate.get(key)
+    result.push({
+      fecha: key,
+      total: Number(row?.total) || 0,
+      tickets: Number(row?.tickets) || 0
+    })
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  return result
+}
+
 // Reports data
-const fechaInicio = ref('')
-const fechaFin = ref(new Date().toISOString().split('T')[0])
+const fechaInicio = ref(formatLocalDate())
+const fechaFin = ref(formatLocalDate())
 const cargando = ref(false)
 const periodoVentas = ref('30')
 
@@ -509,26 +554,33 @@ const chartData = ref({ daily: { labels: [], datasets: [] }, metodos: { labels: 
 const chartOptions = { responsive: true, maintainAspectRatio: false }
 const chartOptionsDoughnut = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
 
-const setPeriodo = (periodo) => {
+const setPeriodo = async (periodo) => {
   periodoReporte.value = periodo
-  const hoy = new Date()
-  fechaFin.value = hoy.toISOString().split('T')[0]
+  const hoy = formatLocalDate()
+  fechaFin.value = hoy
   if (periodo === 'hoy') {
-    fechaInicio.value = hoy.toISOString().split('T')[0]
+    fechaInicio.value = hoy
   } else if (periodo === 'semana') {
-    const inicio = new Date(hoy)
-    inicio.setDate(hoy.getDate() - 7)
-    fechaInicio.value = inicio.toISOString().split('T')[0]
+    fechaInicio.value = getLastDaysRange(7).fecha_inicio
   } else {
-    const inicio = new Date(hoy)
-    inicio.setDate(hoy.getDate() - 30)
-    fechaInicio.value = inicio.toISOString().split('T')[0]
+    fechaInicio.value = getLastDaysRange(30).fecha_inicio
   }
+  await cargarReportes()
+}
+
+const setPeriodoVentas = async (periodo) => {
+  periodoVentas.value = periodo
+  await cargarTendenciaVentas()
 }
 
 const cargarReportes = async () => {
   cargando.value = true
   try {
+    if (!fechaInicio.value || !fechaFin.value) {
+      const range = getLastDaysRange(30)
+      fechaInicio.value = range.fecha_inicio
+      fechaFin.value = range.fecha_fin
+    }
     const { data } = await api.get('/ventas/reportes', {
       params: { fecha_inicio: fechaInicio.value, fecha_fin: fechaFin.value }
     })
@@ -538,12 +590,13 @@ const cargarReportes = async () => {
     top_productos.value = data.top_productos || []
     const pc = colorPrincipal.value
     const palette = [pc, '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444', '#14b8a6']
+    const ventasDiarias = fillDailySeries(data.ventas_diarias || [], fechaInicio.value, fechaFin.value)
     chartData.value = {
       daily: {
-        labels: (data.ventas_diarias || []).map(d => d.fecha?.split('T')[0] || ''),
+        labels: ventasDiarias.map(d => d.fecha),
         datasets: [{
           label: 'Ventas',
-          data: (data.ventas_diarias || []).map(d => d.total || 0),
+          data: ventasDiarias.map(d => d.total || 0),
           backgroundColor: pc + '80',
           borderColor: pc,
           borderWidth: 2,
@@ -727,7 +780,7 @@ const calcularVentasPorDia = () => {
     promedio: conteo[i] > 0 ? round(totales[i] / conteo[i]) : 0,
     total: round(totales[i])
   }))
-  
+
   const mejor = dayOfWeekStats.value.reduce((max, d) => d.promedio > max.promedio ? d : max, dayOfWeekStats.value[0])
   mejorDia.value = mejor?.dia || '-'
   ventasMejorDia.value = mejor?.promedio || 0
@@ -742,6 +795,23 @@ api.interceptors.request.use(config => {
   return config
 })
 
+const cargarTendenciaVentas = async () => {
+  try {
+    const range = getLastDaysRange(Number(periodoVentas.value))
+    const { data } = await api.get('/ventas/reportes', {
+      params: range
+    })
+
+    dailyStats.value = fillDailySeries(data.ventas_diarias || [], range.fecha_inicio, range.fecha_fin)
+    calcularVentasPorDia()
+    await nextTick()
+    initCharts()
+  } catch (e) {
+    console.error('Error loading sales trend:', e)
+    showNotification('No se pudo cargar la tendencia de ventas')
+  }
+}
+
 // Load Analytics
 const loadAnalytics = async () => {
   try {
@@ -752,22 +822,25 @@ const loadAnalytics = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     
-    const hace7Dias = new Date()
-    hace7Dias.setDate(hace7Dias.getDate() - 7)
+    const rangoSemana = getLastDaysRange(7)
+    const rangoTendencia = getLastDaysRange(Number(periodoVentas.value))
     const { data: reporteSemana } = await api.get('/ventas/reportes', {
-      params: {
-        fecha_inicio: hace7Dias.toISOString().split('T')[0],
-        fecha_fin: new Date().toISOString().split('T')[0]
-      },
+      params: rangoSemana,
       headers: { Authorization: `Bearer ${token}` }
     })
+    const reporteTendencia = periodoVentas.value === '7'
+      ? reporteSemana
+      : (await api.get('/ventas/reportes', {
+          params: rangoTendencia,
+          headers: { Authorization: `Bearer ${token}` }
+        })).data
     
     const ayer = new Date()
     ayer.setDate(hoy.getDate() - 1)
     const { data: reporteAyer } = await api.get('/ventas/reportes', {
       params: { 
-        fecha_inicio: ayer.toISOString().split('T')[0], 
-        fecha_fin: ayer.toISOString().split('T')[0] 
+        fecha_inicio: formatLocalDate(ayer),
+        fecha_fin: formatLocalDate(ayer)
       },
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -798,13 +871,11 @@ const loadAnalytics = async () => {
     categoriasVentas.value = reportData?.categorias?.length > 0 ? reportData.categorias : (dash.categorias || [])
     
     // Gráfico de Tendencia
-    if (reporteSemana?.ventas_diarias?.length > 0) {
-      dailyStats.value = reporteSemana.ventas_diarias
-    } else if (dash.resumen?.total > 0) {
-      dailyStats.value = [{ fecha: new Date().toISOString(), total: dash.resumen.total }]
-    } else {
-      dailyStats.value = []
-    }
+    dailyStats.value = fillDailySeries(
+      reporteTendencia?.ventas_diarias || [],
+      rangoTendencia.fecha_inicio,
+      rangoTendencia.fecha_fin
+    )
     
     calcularVentasPorDia()
     
@@ -956,6 +1027,12 @@ const initCharts = () => {
 
 onMounted(() => {
   loadAnalytics()
+})
+
+onUnmounted(() => {
+  if (notificationTimeout) clearTimeout(notificationTimeout)
+  Object.values(chartInstances).forEach(chart => chart?.destroy())
+  chartInstances = {}
 })
 </script>
 

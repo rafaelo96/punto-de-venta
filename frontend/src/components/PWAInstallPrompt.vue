@@ -5,8 +5,8 @@
         <Download class="w-6 h-6 text-white" />
       </div>
       <div class="flex-1">
-        <h3 class="font-bold text-neutral-900 mb-1">Instalar Aplicación</h3>
-        <p class="text-sm text-neutral-600 mb-4">Instala el POS para acceso rápido y uso sin navegador</p>
+        <h3 class="font-bold text-neutral-900 mb-1">Instalar Vendi Pro</h3>
+        <p class="text-sm text-neutral-600 mb-4">Accede rápido y trabaja sin abrir el navegador</p>
         <div class="flex gap-3">
           <button @click="installApp" class="flex-1 py-2.5 px-4 rounded-xl text-white font-semibold text-sm" :style="{ backgroundColor: 'rgb(var(--color-primary))' }">
             Instalar

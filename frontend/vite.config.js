@@ -8,11 +8,11 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt'],
+      includeAssets: ['favicon.png', 'icon-192.png', 'icon-512.png', 'robots.txt'],
       manifest: {
-        name: 'Punto de Venta POS',
-        short_name: 'POS',
-        description: 'Sistema de Punto de Venta moderno y rápido',
+        name: 'Vendi Pro',
+        short_name: 'Vendi Pro',
+        description: 'Ventas, inventario y análisis en una operación clara y rápida',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
         display: 'standalone',

@@ -1,5 +1,5 @@
 /**
- * IndexedDB wrapper for offline POS functionality
+ * IndexedDB wrapper for offline sales functionality
  * Stores products, categories, and pending sales when offline
  */
 

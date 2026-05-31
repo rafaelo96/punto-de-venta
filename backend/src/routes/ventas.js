@@ -34,7 +34,7 @@ function verifyTicketToken(token) {
 function generarFolio() {
   const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-  return `POS-${fecha}-${random}`
+  return `VP-${fecha}-${random}`
 }
 
 router.get('/historial', async (req, res) => {
@@ -708,7 +708,7 @@ function buildHtmlTicketText(venta, items, paperWidthMm) {
   lines.push('')
   lines.push(centerTicketLine('*** Gracias por su', maxChars))
   lines.push(centerTicketLine('compra ***', maxChars))
-  lines.push(centerTicketLine(`${new Date().getFullYear()} - POS System`, maxChars))
+  lines.push(centerTicketLine(`${new Date().getFullYear()} - Vendi Pro`, maxChars))
 
   return lines.join('\n')
 }
@@ -792,7 +792,7 @@ function generateESCPOS(venta, items) {
   cmds.push([ESC, 0x61, 0x01]) // Centrar
   cmds.push(stringToBytes('*** Gracias por su compra ***'))
   cmds.push([LF])
-  cmds.push(stringToBytes(new Date().getFullYear() + ' - POS System'))
+  cmds.push(stringToBytes(new Date().getFullYear() + ' - Vendi Pro'))
   cmds.push([LF, LF, LF])
   
   // Cortar papel

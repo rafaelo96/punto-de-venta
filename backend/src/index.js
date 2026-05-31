@@ -32,7 +32,11 @@ app.use(cors({
       process.env.FRONTEND_URL,
       process.env.CORS_ORIGIN,
       'http://localhost:5173',
-      'http://localhost:3000'
+      'http://127.0.0.1:5173',
+      'http://localhost:4173',
+      'http://127.0.0.1:4173',
+      'http://localhost:3000',
+      'http://127.0.0.1:3000'
     ].filter(Boolean)
 
     if (!origin) {
@@ -101,7 +105,7 @@ app.use((req, res, next) => {
 })
 
 app.get('/api', (req, res) => {
-  res.json({ message: 'API POS', version: '1.1.0', status: 'OK' })
+  res.json({ message: 'API Vendi Pro', version: '1.1.0', status: 'OK' })
 })
 
 app.get('/api/health', async (req, res) => {
