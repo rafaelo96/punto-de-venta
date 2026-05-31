@@ -532,42 +532,10 @@ router.get('/ticket/:id', async (req, res) => {
       res.setHeader('Content-Type', 'application/octet-stream')
       res.send(Buffer.from(escpos))
     } else {
-      let logoUrl = ''
-      if (v.negocio_logo) {
-        logoUrl = v.negocio_logo.startsWith('/uploads') ? v.negocio_logo : `/uploads${v.negocio_logo}`
-      }
-
-      const escapeHtml = (str) => {
-        if (!str) return ''
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;')
-      }
-
       const paperWidthMm = req.query.paper === '80' ? 80 : 58
-      const printableWidthMm = paperWidthMm === 80 ? 72 : 48
-      const fontSizePx = paperWidthMm === 80 ? 12 : 11
-      const logoWidthMm = paperWidthMm === 80 ? 50 : 36
-      const logoSrc = escapeHtml(logoUrl)
-      const negocioNombre = escapeHtml(v.negocio_nombre || 'Punto de Venta')
-      const direccion = escapeHtml(v.direccion_negocio || '')
-      const telefono = escapeHtml(v.telefono_negocio || '')
-      const usuario = escapeHtml(v.usuario_nombre || '-')
-      const metodoPago = escapeHtml(String(v.metodo_pago || '').toUpperCase())
-      const fecha = new Date(v.created_at).toLocaleString('es-MX')
-      const itemsHtml = items.rows.map(item => {
-        const p = parseFloat(item.precio_unitario) || 0
-        const q = parseInt(item.cantidad) || 0
-        const nombre = escapeHtml(item.producto_nombre || '')
-        return `<tr><td>${q}x ${nombre}</td><td style="text-align:right">$${(p * q).toFixed(2)}</td></tr>`
-      }).join('')
-      const descHtml = v.descuento_porcentaje > 0 ? `<tr><td>Descuento: ${v.descuento_porcentaje}%</td><td></td></tr>` : ''
-      const cambioHtml = v.metodo_pago === 'efectivo'
-        ? `<table><tr><td>Efectivo</td><td>$${parseFloat(v.efectivo).toFixed(2)}</td></tr><tr><td>Cambio</td><td>$${parseFloat(v.cambio).toFixed(2)}</td></tr></table>`
-        : ''
+      const printableWidthMm = paperWidthMm === 80 ? 72 : 43
+      const fontSizePx = paperWidthMm === 80 ? 12 : 12
+      const ticketText = escapeHtml(buildHtmlTicketText(v, items.rows, paperWidthMm))
 
       let html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Ticket #${v.id}</title>
@@ -576,45 +544,174 @@ router.get('/ticket/:id', async (req, res) => {
 html,body{margin:0;padding:0;background:#fff}
 body{width:${paperWidthMm}mm;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 @media print{@page{size:${paperWidthMm}mm auto;margin:0}html,body{width:${paperWidthMm}mm}}
-.ticket{width:${printableWidthMm}mm;margin:0 auto;padding:1mm 0 2mm;font-family:'Courier New',Consolas,monospace;font-size:${fontSizePx}px;line-height:1.25}
-.ticket *{font-family:inherit;font-size:inherit;line-height:inherit}
-.c{text-align:center}.b{font-weight:bold}
-table{width:100%;border-collapse:collapse;table-layout:fixed}td{padding:1px 0;vertical-align:top}
-td:first-child{width:68%;overflow-wrap:anywhere}td:last-child{text-align:right;white-space:nowrap}
-.d{border-top:1px dashed #999;margin:4px 0}
+.ticket{width:${printableWidthMm}mm;margin:0 0 0 2mm;padding:2mm 0 5mm;overflow:hidden}
+pre{margin:0;white-space:pre-wrap;font-family:Consolas,Menlo,Monaco,'Courier New',monospace;font-size:${fontSizePx}px;line-height:1.28;font-weight:700;letter-spacing:0;color:#000}
 </style></head><body>
 <div class="ticket">
-<div class="c">
-${logoSrc ? `<img src="${logoSrc}" style="max-width:${logoWidthMm}mm;max-height:12mm;margin-bottom:4px" />` : ''}
-<div class="b">${negocioNombre}</div>
-${direccion ? `<div>${direccion}</div>` : ''}
-${telefono ? `<div>${telefono}</div>` : ''}
-</div>
-<div class="d"></div>
-Ticket #${v.id}<br/>
-${fecha}<br/>
-Cajero: ${usuario}
-${v.status === 'cancelada' ? '<br/><span class="b" style="color:red">*** CANCELADA ***</span>' : ''}
-<div class="d"></div>
-<table>${itemsHtml}${descHtml}</table>
-<div class="d"></div>
-<table><tr><td class="b">TOTAL</td><td class="b" style="text-align:right">$${v.total.toFixed(2)}</td></tr></table>
-Metodo: ${metodoPago}
-${cambioHtml}
-<div class="c" style="margin-top:10px">
-*** Gracias por su compra ***<br/>
-${new Date().getFullYear()} - POS System
-</div>
+<pre>${ticketText}</pre>
 </div>
 <script>window.onload=function(){setTimeout(function(){window.print()},500)}</script>
 </body></html>`
       
+      res.setHeader('Content-Type', 'text/html; charset=utf-8')
       res.send(html)
     }
   } catch (error) {
     res.status(500).json({ message: 'Error al generar ticket', error: error.message })
   }
 })
+
+function escapeHtml(str) {
+  if (!str) return ''
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function cleanTicketText(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[–—]/g, '-')
+    .replace(/[^\S\r\n]+/g, ' ')
+    .trim()
+}
+
+function formatTicketMoney(value) {
+  const amount = Number(value) || 0
+  return Number.isInteger(amount) ? `$${amount}` : `$${amount.toFixed(2)}`
+}
+
+function formatTicketDate(value) {
+  const date = new Date(value)
+  const pad = (part) => String(part).padStart(2, '0')
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function wrapTicketText(value, maxChars) {
+  const text = cleanTicketText(value)
+  if (!text) return []
+
+  const lines = []
+  for (const paragraph of text.split('\n')) {
+    const words = paragraph.split(' ').filter(Boolean)
+    let line = ''
+
+    for (const word of words) {
+      if (word.length > maxChars) {
+        if (line) {
+          lines.push(line)
+          line = ''
+        }
+        for (let i = 0; i < word.length; i += maxChars) {
+          lines.push(word.slice(i, i + maxChars))
+        }
+        continue
+      }
+
+      const next = line ? `${line} ${word}` : word
+      if (next.length > maxChars) {
+        if (line) lines.push(line)
+        line = word
+      } else {
+        line = next
+      }
+    }
+
+    if (line) lines.push(line)
+  }
+
+  return lines
+}
+
+function centerTicketLine(value, maxChars) {
+  const text = cleanTicketText(value).slice(0, maxChars)
+  const padding = Math.max(0, Math.floor((maxChars - text.length) / 2))
+  return `${' '.repeat(padding)}${text}`
+}
+
+function ticketLinePair(left, right, maxChars) {
+  const cleanLeft = cleanTicketText(left)
+  const cleanRight = cleanTicketText(right)
+  if (cleanRight.length >= maxChars) return cleanRight.slice(0, maxChars)
+
+  const availableLeft = Math.max(0, maxChars - cleanRight.length - 1)
+  const clippedLeft = cleanLeft.slice(0, availableLeft)
+  const spaces = Math.max(1, maxChars - clippedLeft.length - cleanRight.length)
+  return `${clippedLeft}${' '.repeat(spaces)}${cleanRight}`
+}
+
+function addWrappedLines(lines, value, maxChars, centered = false) {
+  for (const line of wrapTicketText(value, maxChars)) {
+    lines.push(centered ? centerTicketLine(line, maxChars) : line)
+  }
+}
+
+function addItemLines(lines, item, maxChars) {
+  const quantity = parseInt(item.cantidad) || 0
+  const unitPrice = parseFloat(item.precio_unitario) || 0
+  const price = formatTicketMoney(unitPrice * quantity)
+  const description = `${quantity}x ${item.producto_nombre || ''}`
+  const descriptionWidth = Math.max(8, maxChars - price.length - 1)
+  const firstLines = wrapTicketText(description, descriptionWidth)
+  const remainingText = firstLines.slice(1).join(' ')
+
+  if (firstLines.length === 0) {
+    lines.push(ticketLinePair('', price, maxChars))
+    return
+  }
+
+  lines.push(ticketLinePair(firstLines[0], price, maxChars))
+  for (const line of wrapTicketText(remainingText, maxChars)) {
+    lines.push(line)
+  }
+}
+
+function buildHtmlTicketText(venta, items, paperWidthMm) {
+  const maxChars = paperWidthMm === 80 ? 42 : 22
+  const divider = '-'.repeat(maxChars)
+  const lines = []
+
+  addWrappedLines(lines, venta.negocio_nombre || 'Punto de Venta', maxChars, true)
+  if (venta.direccion_negocio) addWrappedLines(lines, venta.direccion_negocio, maxChars, true)
+  if (venta.telefono_negocio) addWrappedLines(lines, venta.telefono_negocio, maxChars, true)
+
+  lines.push(divider)
+  lines.push(`Ticket #${venta.id}`)
+  lines.push(formatTicketDate(venta.created_at))
+  addWrappedLines(lines, `Cajero: ${venta.usuario_nombre || '-'}`, maxChars)
+  if (venta.status === 'cancelada') lines.push(centerTicketLine('*** CANCELADA ***', maxChars))
+
+  lines.push(divider)
+  for (const item of items) {
+    addItemLines(lines, item, maxChars)
+  }
+
+  if (venta.descuento_porcentaje > 0) {
+    lines.push(ticketLinePair(`Descuento ${venta.descuento_porcentaje}%`, '', maxChars))
+  }
+
+  lines.push(divider)
+  lines.push(ticketLinePair('TOTAL', formatTicketMoney(venta.total), maxChars))
+  lines.push(`Metodo: ${cleanTicketText(String(venta.metodo_pago || '').toUpperCase())}`)
+
+  if (venta.metodo_pago === 'efectivo') {
+    lines.push(ticketLinePair('Efectivo', formatTicketMoney(venta.efectivo), maxChars))
+    lines.push(ticketLinePair('Cambio', formatTicketMoney(venta.cambio), maxChars))
+  }
+
+  lines.push('')
+  lines.push(centerTicketLine('*** Gracias por su', maxChars))
+  lines.push(centerTicketLine('compra ***', maxChars))
+  lines.push(centerTicketLine(`${new Date().getFullYear()} - POS System`, maxChars))
+
+  return lines.join('\n')
+}
 
 function generateESCPOS(venta, items) {
   const ESC = 0x1B
