@@ -481,17 +481,42 @@ const agregarAlCarrito = (producto) => {
 const playBeep = () => {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-    const oscillator = audioCtx.createOscillator()
-    const gainNode = audioCtx.createGain()
-    oscillator.connect(gainNode)
-    gainNode.connect(audioCtx.destination)
-    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1)
-    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15)
-    oscillator.type = 'sine'
-    oscillator.start()
-    oscillator.stop(audioCtx.currentTime + 0.15)
+    const now = audioCtx.currentTime
+    const masterGain = audioCtx.createGain()
+    masterGain.gain.setValueAtTime(0.0001, now)
+    masterGain.gain.exponentialRampToValueAtTime(0.16, now + 0.018)
+    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34)
+    masterGain.connect(audioCtx.destination)
+
+    const playTone = (frequency, start, duration, gain = 0.75) => {
+      const toneGain = audioCtx.createGain()
+      const fundamental = audioCtx.createOscillator()
+      const shimmer = audioCtx.createOscillator()
+
+      toneGain.gain.setValueAtTime(0.0001, now + start)
+      toneGain.gain.exponentialRampToValueAtTime(gain, now + start + 0.012)
+      toneGain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration)
+
+      fundamental.type = 'sine'
+      shimmer.type = 'triangle'
+      fundamental.frequency.setValueAtTime(frequency, now + start)
+      shimmer.frequency.setValueAtTime(frequency * 2, now + start)
+
+      fundamental.connect(toneGain)
+      shimmer.connect(toneGain)
+      toneGain.connect(masterGain)
+
+      fundamental.start(now + start)
+      shimmer.start(now + start)
+      fundamental.stop(now + start + duration + 0.02)
+      shimmer.stop(now + start + duration + 0.02)
+    }
+
+    playTone(659.25, 0, 0.22, 0.55)
+    playTone(987.77, 0.055, 0.24, 0.65)
+    playTone(1318.51, 0.12, 0.2, 0.42)
+
+    setTimeout(() => audioCtx.close?.(), 450)
   } catch (e) {
     console.warn('Audio not supported')
   }

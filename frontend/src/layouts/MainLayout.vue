@@ -61,9 +61,7 @@
       <div class="p-4 border-b border-[rgb(var(--neutral-200))] transition-colors duration-300">
         <div class="flex items-center justify-center xl:justify-start gap-4">
           <div 
-            class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl transition-transform duration-300 group-hover:scale-105"
-            :style="{ backgroundColor: 'rgb(var(--color-primary))' }"
-          >
+            class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl transition-transform duration-300 group-hover:scale-105">
             <img v-if="negocioLogo" :src="negocioLogo + '?t=' + Date.now()" class="w-full h-full object-contain" />
             <ShoppingCart v-else class="w-6 h-6 text-white" />
           </div>
