@@ -289,7 +289,7 @@ const seleccionarVenta = async (venta) => {
 const reimprimir = async (venta) => {
   try {
     const { data } = await api.get(`/ventas/ticket-token/${venta.id}`)
-    window.open(`/api/ventas/ticket/${venta.id}?token=${encodeURIComponent(data.token)}`, '_blank')
+    window.open(`/api/ventas/ticket/${venta.id}?token=${encodeURIComponent(data.token)}&paper=58`, '_blank')
   } catch (e) {
     console.error(e)
     alert('Error al reimprimir ticket')
@@ -332,4 +332,3 @@ onMounted(() => {
   fetchVentas()
 })
 </script>
-

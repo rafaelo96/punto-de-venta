@@ -657,7 +657,7 @@ const imprimirTicket = async (ventaId) => {
       return
     }
     const { data } = await api.get(`/ventas/ticket-token/${ventaId}`)
-    const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(data.token)}`
+    const url = `/api/ventas/ticket/${ventaId}?token=${encodeURIComponent(data.token)}&paper=58`
     const printWindow = window.open(url, '_blank')
     if (!printWindow) {
       toast.warning('Permite ventanas emergentes para imprimir')

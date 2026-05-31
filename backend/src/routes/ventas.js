@@ -539,13 +539,24 @@ router.get('/ticket/:id', async (req, res) => {
 
       const escapeHtml = (str) => {
         if (!str) return ''
-        return String(str).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"')
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
       }
 
+      const paperWidthMm = req.query.paper === '80' ? 80 : 58
+      const printableWidthMm = paperWidthMm === 80 ? 72 : 48
+      const fontSizePx = paperWidthMm === 80 ? 12 : 11
+      const logoWidthMm = paperWidthMm === 80 ? 50 : 36
+      const logoSrc = escapeHtml(logoUrl)
       const negocioNombre = escapeHtml(v.negocio_nombre || 'Punto de Venta')
       const direccion = escapeHtml(v.direccion_negocio || '')
       const telefono = escapeHtml(v.telefono_negocio || '')
       const usuario = escapeHtml(v.usuario_nombre || '-')
+      const metodoPago = escapeHtml(String(v.metodo_pago || '').toUpperCase())
       const fecha = new Date(v.created_at).toLocaleString('es-MX')
       const itemsHtml = items.rows.map(item => {
         const p = parseFloat(item.precio_unitario) || 0
@@ -555,21 +566,26 @@ router.get('/ticket/:id', async (req, res) => {
       }).join('')
       const descHtml = v.descuento_porcentaje > 0 ? `<tr><td>Descuento: ${v.descuento_porcentaje}%</td><td></td></tr>` : ''
       const cambioHtml = v.metodo_pago === 'efectivo'
-        ? `<tr><td>Efectivo: $${parseFloat(v.efectivo).toFixed(2)}</td><td></td></tr><tr><td>Cambio: $${parseFloat(v.cambio).toFixed(2)}</td><td></td></tr>`
+        ? `<table><tr><td>Efectivo</td><td>$${parseFloat(v.efectivo).toFixed(2)}</td></tr><tr><td>Cambio</td><td>$${parseFloat(v.cambio).toFixed(2)}</td></tr></table>`
         : ''
 
       let html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Ticket #${v.id}</title>
 <style>
-*{margin:0;padding:0;font-family:'Courier New',monospace;font-size:12px;line-height:1.4}
-@media print{@page{size:80mm auto;margin:0}body{width:72mm;padding:2mm}}
-body{width:72mm;padding:2mm;margin:0;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff}
+body{width:${paperWidthMm}mm;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@media print{@page{size:${paperWidthMm}mm auto;margin:0}html,body{width:${paperWidthMm}mm}}
+.ticket{width:${printableWidthMm}mm;margin:0 auto;padding:1mm 0 2mm;font-family:'Courier New',Consolas,monospace;font-size:${fontSizePx}px;line-height:1.25}
+.ticket *{font-family:inherit;font-size:inherit;line-height:inherit}
 .c{text-align:center}.b{font-weight:bold}
-table{width:100%;border-collapse:collapse}td{padding:2px 0}
+table{width:100%;border-collapse:collapse;table-layout:fixed}td{padding:1px 0;vertical-align:top}
+td:first-child{width:68%;overflow-wrap:anywhere}td:last-child{text-align:right;white-space:nowrap}
 .d{border-top:1px dashed #999;margin:4px 0}
 </style></head><body>
+<div class="ticket">
 <div class="c">
-${logoUrl ? `<img src="${logoUrl}" style="max-width:50mm;max-height:15mm;margin-bottom:4px" />` : ''}
+${logoSrc ? `<img src="${logoSrc}" style="max-width:${logoWidthMm}mm;max-height:12mm;margin-bottom:4px" />` : ''}
 <div class="b">${negocioNombre}</div>
 ${direccion ? `<div>${direccion}</div>` : ''}
 ${telefono ? `<div>${telefono}</div>` : ''}
@@ -583,10 +599,12 @@ ${v.status === 'cancelada' ? '<br/><span class="b" style="color:red">*** CANCELA
 <table>${itemsHtml}${descHtml}</table>
 <div class="d"></div>
 <table><tr><td class="b">TOTAL</td><td class="b" style="text-align:right">$${v.total.toFixed(2)}</td></tr></table>
-Metodo: ${v.metodo_pago.toUpperCase()}${cambioHtml}
+Metodo: ${metodoPago}
+${cambioHtml}
 <div class="c" style="margin-top:10px">
 *** Gracias por su compra ***<br/>
 ${new Date().getFullYear()} - POS System
+</div>
 </div>
 <script>window.onload=function(){setTimeout(function(){window.print()},500)}</script>
 </body></html>`
