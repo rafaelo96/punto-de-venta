@@ -33,10 +33,13 @@ const isVersionableAsset = (url) => {
   return /\.(css|js|png|jpe?g|webp|svg|ico|webmanifest|woff2?|ttf|otf)([?#].*)?$/i.test(url)
 }
 
-const versionHtmlAssets = (html, appVersion) => {
+const isDevModule = (url) => url.startsWith('/src/') || url.startsWith('/@vite')
+
+const versionHtmlAssets = (html, appVersion, options = {}) => {
   return html
     .replaceAll('%APP_VERSION%', appVersion)
     .replace(/\b(href|src)="([^"]+)"/g, (match, attr, url) => {
+      if (options.skipDevModules && isDevModule(url)) return match
       if (!isVersionableAsset(url)) return match
       return `${attr}="${appendVersion(url, appVersion)}"`
     })
@@ -53,7 +56,7 @@ const removeDuplicateManifestLinks = (html) => {
   })
 }
 
-const assetVersionPlugin = (appVersion) => {
+const assetVersionPlugin = (appVersion, options = {}) => {
   let outDir = ''
 
   return {
@@ -63,12 +66,12 @@ const assetVersionPlugin = (appVersion) => {
       outDir = path.resolve(config.root, config.build.outDir)
     },
     transformIndexHtml(html) {
-      return versionHtmlAssets(html, appVersion)
+      return versionHtmlAssets(html, appVersion, options)
     },
     generateBundle(_options, bundle) {
       for (const asset of Object.values(bundle)) {
         if (asset.type === 'asset' && asset.fileName.endsWith('.html')) {
-          asset.source = removeDuplicateManifestLinks(versionHtmlAssets(String(asset.source), appVersion))
+          asset.source = removeDuplicateManifestLinks(versionHtmlAssets(String(asset.source), appVersion, options))
         }
       }
     },
@@ -77,19 +80,17 @@ const assetVersionPlugin = (appVersion) => {
       if (!existsSync(indexPath)) return
 
       const html = readFileSync(indexPath, 'utf8')
-      writeFileSync(indexPath, removeDuplicateManifestLinks(versionHtmlAssets(html, appVersion)))
+      writeFileSync(indexPath, removeDuplicateManifestLinks(versionHtmlAssets(html, appVersion, options)))
     }
   }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const appVersion = getAppVersion(mode)
   const versioned = (url) => appendVersion(url, appVersion)
+  const isBuild = command === 'build'
 
   return {
-  define: {
-    __APP_VERSION__: JSON.stringify(appVersion)
-  },
   plugins: [
     vue(),
     VitePWA({
@@ -216,7 +217,7 @@ export default defineConfig(({ mode }) => {
         // Custom strategies can be added here
       }
     }),
-    assetVersionPlugin(appVersion)
+    assetVersionPlugin(appVersion, { skipDevModules: !isBuild })
   ],
   resolve: {
     alias: {

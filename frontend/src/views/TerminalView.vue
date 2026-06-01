@@ -387,6 +387,7 @@ import { useProductosStore } from '@/stores/productos'
 import { useVentasStore } from '@/stores/ventas'
 import { config, fetchConfig, saveConfig } from '@/stores/config'
 import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import api from '@/api'
 import {
   Search, Package, Tag, LayoutGrid, List, ShoppingCart, Trash2, Plus, Minus,
@@ -398,6 +399,7 @@ import {
 const productosStore = useProductosStore()
 const ventasStore = useVentasStore()
 const toast = useToast()
+const confirmDialog = useConfirm()
 
 const searchQuery = ref('')
 const categoriaSeleccionada = ref('todos')
@@ -608,8 +610,16 @@ const calcularCambio = () => {
   }
 }
 
-const limpiarCarrito = () => {
-  if (confirm('¿Limpiar el carrito?')) {
+const limpiarCarrito = async () => {
+  const confirmed = await confirmDialog.requestConfirmation({
+    title: 'Limpiar carrito',
+    message: 'Se quitarán todos los productos de la venta actual.',
+    confirmText: 'Limpiar',
+    cancelText: 'Cancelar',
+    tone: 'warning'
+  })
+
+  if (confirmed) {
     ventasStore.limpiarCarrito()
     toast.info('Carrito limpiado')
   }

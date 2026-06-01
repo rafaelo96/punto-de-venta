@@ -5,10 +5,12 @@ import router from './router'
 import './style.css'
 import { applyThemeColor } from './stores/config'
 import { initDB } from './utils/offlineDB'
+import { useConfirm } from './composables/useConfirm'
 
-const APP_VERSION = __APP_VERSION__
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.1.0'
 const VERSION_STORAGE_KEY = 'vendi_pro_app_version'
 const VERSION_RELOAD_KEY = `vendi_pro_reload_${APP_VERSION}`
+const confirmDialog = useConfirm()
 
 document.documentElement.dataset.appVersion = APP_VERSION
 
@@ -62,10 +64,18 @@ if ('serviceWorker' in navigator) {
   import('virtual:pwa-register').then(({ registerSW }) => {
     registerSW({
       onNeedRefresh() {
-        if (!sessionStorage.getItem(VERSION_RELOAD_KEY)) {
-          sessionStorage.setItem(VERSION_RELOAD_KEY, 'true')
-          location.reload()
-        }
+        confirmDialog.requestConfirmation({
+          title: 'Nueva versión disponible',
+          message: 'Actualiza Vendi Pro para cargar los cambios más recientes.',
+          confirmText: 'Actualizar',
+          cancelText: 'Después',
+          tone: 'info'
+        }).then((shouldReload) => {
+          if (shouldReload && !sessionStorage.getItem(VERSION_RELOAD_KEY)) {
+            sessionStorage.setItem(VERSION_RELOAD_KEY, 'true')
+            location.reload()
+          }
+        })
       },
       onOfflineReady() {
         console.log('Aplicación lista para funcionar offline')

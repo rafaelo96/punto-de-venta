@@ -266,6 +266,8 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { applyThemeColor, config, saveConfig } from '@/stores/config'
+import { useConfirm } from '@/composables/useConfirm'
+import { useToast } from '@/composables/useToast'
 import {
   Settings, Store, Upload, Plus, Check, Save, Building2,
   Palette, MapPin, Phone, Tag, Folder, Trash2, AlertCircle,
@@ -274,6 +276,8 @@ import {
 import { presetColors } from '@/stores/config'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const confirmDialog = useConfirm()
+const toast = useToast()
 
 const colorPrincipal = computed(() => {
   if (negocio.color && negocio.color !== config.color_principal) return negocio.color
@@ -360,7 +364,7 @@ const subirLogo = async (event) => {
   if (!file) return
   
   if (file.size > 2 * 1024 * 1024) {
-    alert('El archivo no puede superar 2MB')
+    toast.warning('El archivo no puede superar 2MB')
     return
   }
   
@@ -394,7 +398,15 @@ const agregarCategoria = async () => {
 }
 
 const eliminarCategoria = async (id) => {
-  if (confirm('¿Eliminar categoría?')) {
+  const confirmed = await confirmDialog.requestConfirmation({
+    title: 'Eliminar categoría',
+    message: 'Los productos asociados podrían quedarse sin categoría.',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    tone: 'warning'
+  })
+
+  if (confirmed) {
     await api.delete(`/categorias/${id}`)
     fetchCategorias()
   }

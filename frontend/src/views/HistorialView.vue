@@ -210,9 +210,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useToast } from '@/composables/useToast'
 import { History, Search, Receipt, Printer, ChevronLeft, ChevronRight, X, AlertTriangle } from 'lucide-vue-next'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const toast = useToast()
 
 const isDark = ref(document.documentElement.classList.contains('dark'))
 
@@ -292,7 +294,7 @@ const reimprimir = async (venta) => {
     window.open(`/api/ventas/ticket/${venta.id}?token=${encodeURIComponent(data.token)}&paper=58`, '_blank')
   } catch (e) {
     console.error(e)
-    alert('Error al reimprimir ticket')
+    toast.error('Error al reimprimir ticket')
   }
 }
 
@@ -322,7 +324,7 @@ const cancelarVenta = async () => {
     ventaSeleccionada.value = null
     fetchVentas()
   } catch (e) {
-    alert(e.response?.data?.message || 'Error al cancelar venta')
+    toast.error(e.response?.data?.message || 'Error al cancelar venta')
   } finally {
     cancelando.value = false
   }

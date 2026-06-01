@@ -8,8 +8,8 @@
         <h3 class="font-bold text-neutral-900 mb-1">Instalar Vendi Pro</h3>
         <p class="text-sm text-neutral-600 mb-4">Accede rápido y trabaja sin abrir el navegador</p>
         <div class="flex gap-3">
-          <button @click="installApp" class="flex-1 py-2.5 px-4 rounded-xl text-white font-semibold text-sm" :style="{ backgroundColor: 'rgb(var(--color-primary))' }">
-            Instalar
+          <button @click="showInstallHelp" class="flex-1 py-2.5 px-4 rounded-xl text-white font-semibold text-sm" :style="{ backgroundColor: 'rgb(var(--color-primary))' }">
+            Ver instrucciones
           </button>
           <button @click="dismissPrompt" class="px-4 py-2.5 rounded-xl border border-neutral-200 text-sm font-medium text-neutral-600 hover:bg-neutral-50">
             Ahora no
@@ -23,29 +23,18 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Download } from 'lucide-vue-next'
+import { useToast } from '@/composables/useToast'
 
 const showPrompt = ref(false)
-let deferredPrompt = null
+const toast = useToast()
 
 const handleBeforeInstallPrompt = (e) => {
-  // Prevent Chrome 67 and earlier from automatically showing the prompt
   e.preventDefault()
-  // Stash the event so it can be triggered later
-  deferredPrompt = e
-  // Update UI to notify the user they can add to home screen
   showPrompt.value = true
 }
 
-const installApp = async () => {
-  if (!deferredPrompt) return
-  // Show the install prompt
-  deferredPrompt.prompt()
-  // Wait for the user to respond to the prompt
-  const { outcome } = await deferredPrompt.userChoice
-  console.log(`User response to the install prompt: ${outcome}`)
-  // We've used the prompt, and can't use it again, throw it away
-  deferredPrompt = null
-  showPrompt.value = false
+const showInstallHelp = () => {
+  toast.info('Para instalar Vendi Pro, usa la opción Instalar app del menú del navegador.', 7000)
 }
 
 const dismissPrompt = () => {

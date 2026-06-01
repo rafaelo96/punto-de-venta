@@ -227,11 +227,13 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useProductosStore } from '@/stores/productos'
+import { useConfirm } from '@/composables/useConfirm'
 import { Plus, Search, Package, Tag, Pencil, Trash2, X, Upload, Check } from 'lucide-vue-next'
 import { config } from '@/stores/config'
 import axios from 'axios'
 
 const productosStore = useProductosStore()
+const confirmDialog = useConfirm()
 const colorPrincipal = computed(() => config.color_principal || '#3b82f6')
 
 const showModal = ref(false)
@@ -285,7 +287,15 @@ const editarProducto = (producto) => {
 }
 
 const confirmarEliminar = async (producto) => {
-  if (confirm(`¿Eliminar "${producto.nombre}"?`)) {
+  const confirmed = await confirmDialog.requestConfirmation({
+    title: 'Eliminar producto',
+    message: `Se eliminará "${producto.nombre}" del catálogo.`,
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    tone: 'danger'
+  })
+
+  if (confirmed) {
     await productosStore.eliminarProducto(producto.id)
   }
 }
